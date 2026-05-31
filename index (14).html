@@ -1,0 +1,4064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0c0c0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Liftaway</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Mono:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0c0c;
+    --bg2: #141414;
+    --bg3: #1c1c1c;
+    --border: rgba(255,255,255,0.07);
+    --gold: #c8a84b;
+    --gold2: #e8c96e;
+    --white: #f0ebe3;
+    --muted: #8a8480;
+    --muted2: #b8b0a8;
+    --green: #4caf7d;
+    --red: #e05c4b;
+    --safe: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Lato', sans-serif;
+    overflow: hidden;
+  }
+
+  /* ── APP SHELL ── */
+  #app {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    position: absolute;
+    inset: 0;
+    bottom: 64px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    transform: translateX(24px);
+    background: var(--bg);
+  }
+  .screen.active {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(0);
+  }
+  .screen.slide-back { transform: translateX(-24px); }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: calc(64px + var(--safe));
+    background: rgba(12,12,12,0.96);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    padding-top: 8px;
+    z-index: 100;
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 0;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .nav-item:active { opacity: 0.6; }
+
+  .nav-icon {
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .nav-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    transition: color 0.15s;
+  }
+  .nav-item.active .nav-label { color: var(--gold); }
+  .nav-item.active .nav-icon { filter: none; }
+
+  /* ── HOME SCREEN ── */
+  .home-header {
+    padding: 56px 24px 0;
+    position: relative;
+  }
+
+  .home-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 5px;
+    color: var(--gold);
+    margin-bottom: 28px;
+  }
+  .home-logo span { color: var(--white); }
+
+  .home-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    line-height: 1.1;
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+  .home-headline em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--gold);
+  }
+
+  .home-sub {
+    font-size: 13px;
+    color: var(--muted2);
+    line-height: 1.5;
+    margin-bottom: 28px;
+    font-weight: 300;
+  }
+
+  /* SEARCH BOX */
+  .search-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    gap: 12px;
+    margin-bottom: 32px;
+    transition: border-color 0.2s;
+  }
+  .search-box:focus-within { border-color: rgba(200,168,75,0.4); }
+
+  .search-box input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--white);
+    font-family: 'Lato', sans-serif;
+    font-size: 15px;
+  }
+  .search-box input::placeholder { color: var(--muted); }
+
+  .search-icon { color: var(--muted); font-size: 16px; }
+  .search-btn-inner {
+    background: var(--gold);
+    color: var(--bg);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.15s;
+  }
+  .search-btn-inner:active { background: var(--gold2); }
+
+  /* FEATURED CITIES */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 24px;
+    margin-bottom: 14px;
+  }
+
+  .cities-scroll {
+    display: flex;
+    gap: 10px;
+    padding: 0 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-bottom: 32px;
+  }
+  .cities-scroll::-webkit-scrollbar { display: none; }
+
+  .city-chip {
+    flex-shrink: 0;
+    padding: 10px 18px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--muted2);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    background: var(--bg2);
+  }
+  .city-chip:active, .city-chip.selected {
+    background: var(--gold);
+    color: var(--bg);
+    border-color: var(--gold);
+    font-weight: 700;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+
+  .stat-cell {
+    background: var(--bg);
+    padding: 20px 16px;
+    text-align: center;
+  }
+  .stat-n {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-l {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* TRENDING */
+  .trending-card {
+    margin: 0 24px 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .trending-card:active { background: var(--bg3); }
+
+  .trending-rank {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--muted);
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .trending-rank.gold { color: var(--gold); }
+
+  .trending-info { flex: 1; min-width: 0; }
+  .trending-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .trending-loc {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted2);
+    letter-spacing: 0.5px;
+  }
+
+  .trending-score {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .t-score-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .t-score-lbl {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .home-pb { height: 24px; }
+
+  /* ── RESULTS SCREEN ── */
+  .results-header {
+    padding: 52px 24px 16px;
+    position: sticky;
+    top: 0;
+    background: rgba(12,12,12,0.95);
+    backdrop-filter: blur(16px);
+    z-index: 10;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--gold);
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-bottom: 12px;
+    width: fit-content;
+  }
+  .back-btn:active { opacity: 0.6; }
+
+  .results-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .results-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted2);
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+  }
+
+  /* FILTER CHIPS */
+  .filter-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .filter-scroll::-webkit-scrollbar { display: none; }
+
+  .filter-chip {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted2);
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .filter-chip.on {
+    background: var(--gold);
+    color: var(--bg);
+    border-color: var(--gold);
+  }
+
+  /* RESULT CARDS */
+  .result-card {
+    margin: 12px 16px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.15s;
+    animation: cardIn 0.4s ease both;
+  }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: none; }
+  }
+  .result-card:nth-child(2) { animation-delay: 0.05s; }
+  .result-card:nth-child(3) { animation-delay: 0.1s; }
+  .result-card:nth-child(4) { animation-delay: 0.15s; }
+  .result-card:nth-child(5) { animation-delay: 0.2s; }
+  .result-card:nth-child(6) { animation-delay: 0.25s; }
+  .result-card:active { transform: scale(0.98); background: var(--bg3); }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px 16px 12px;
+    gap: 12px;
+  }
+
+  .card-rank {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    line-height: 1;
+    color: var(--muted);
+    flex-shrink: 0;
+    width: 36px;
+    text-align: center;
+  }
+  .card-rank.top { color: var(--gold); }
+
+  .card-info { flex: 1; min-width: 0; }
+  .card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+  .card-loc {
+    font-size: 12px;
+    color: var(--muted2);
+    margin-bottom: 8px;
+    font-weight: 300;
+  }
+
+  .card-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .badge {
+    padding: 3px 9px;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .badge-elite { background: rgba(200,168,75,0.12); color: var(--gold); border: 1px solid rgba(200,168,75,0.25); }
+  .badge-verified { background: rgba(76,175,125,0.1); color: var(--green); border: 1px solid rgba(76,175,125,0.2); }
+  .badge-new { background: rgba(224,92,75,0.1); color: #e8856e; border: 1px solid rgba(224,92,75,0.2); }
+
+  .card-score-col {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .card-score-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 44px;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .card-score-lbl {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .card-equip {
+    padding: 0 16px 14px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .equip-pill {
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    color: var(--muted2);
+  }
+  .equip-pill.hi {
+    border-color: rgba(200,168,75,0.25);
+    color: var(--gold);
+    background: rgba(200,168,75,0.05);
+  }
+  .equip-pill.match {
+    border-color: rgba(76,175,125,0.4);
+    color: var(--green);
+    background: rgba(76,175,125,0.08);
+    font-weight: 700;
+  }
+
+  .card-bottom {
+    border-top: 1px solid var(--border);
+    padding: 11px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-actions { display: flex; gap: 8px; }
+
+  .card-save {
+    padding: 8px 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted2);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .card-save:active, .card-save.saved { border-color: var(--gold); color: var(--gold); }
+
+  .card-book {
+    flex: 1;
+    padding: 8px 14px;
+    background: var(--gold);
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    color: var(--bg);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .card-book:active { background: var(--gold2); }
+
+  .results-pb { height: 16px; }
+
+  /* ── PROFILE SCREEN ── */
+  .profile-header {
+    padding: 52px 24px 20px;
+    position: sticky;
+    top: 0;
+    background: rgba(12,12,12,0.95);
+    backdrop-filter: blur(16px);
+    z-index: 10;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .profile-hero {
+    padding: 24px;
+    background: linear-gradient(160deg, rgba(200,168,75,0.06) 0%, transparent 60%);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .profile-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+  .profile-loc {
+    font-size: 13px;
+    color: var(--muted2);
+    margin-bottom: 16px;
+    font-weight: 300;
+  }
+
+  .score-hero {
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    margin-bottom: 20px;
+  }
+  .score-big {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .score-breakdown { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+
+  .score-row { display: flex; align-items: center; gap: 10px; }
+  .score-row-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    width: 52px;
+    flex-shrink: 0;
+  }
+  .score-track {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .score-fill {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 2px;
+  }
+  .score-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted2);
+    width: 22px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+
+
+  /* EQUIPMENT SECTION */
+  .equip-section {
+    padding: 0 16px 16px;
+  }
+
+  .equip-cat-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding: 16px 0 10px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .equip-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+  .equip-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    transition: background 0.1s;
+  }
+  .equip-row:active { background: var(--bg3); }
+  .equip-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+  }
+  .equip-dot.gold { background: var(--gold); }
+  .equip-row-name { font-size: 14px; font-weight: 400; flex: 1; }
+  .equip-row-detail {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+
+  /* HOURS / NOTES */
+  .info-card {
+    margin: 0 16px 16px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-key {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .info-val { font-size: 13px; font-weight: 400; color: var(--white); }
+  .info-val.green { color: var(--green); }
+  .info-val.gold { color: var(--gold); }
+
+  .profile-pb { height: 24px; }
+
+  /* ── EXPLORE SCREEN (placeholder) ── */
+  .explore-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 12px;
+    color: var(--muted);
+  }
+  .explore-icon { font-size: 48px; opacity: 0.3; }
+  .explore-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── UTILITIES ── */
+  .divider { height: 1px; background: var(--border); margin: 8px 0; }
+
+  /* scrollbar */
+  .screen::-webkit-scrollbar { display: none; }
+  .screen { scrollbar-width: none; }
+
+  /* ── PHOTOS & REVIEWS ── */
+  .section-block {
+    padding: 20px 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .section-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .section-block-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+  .section-block-action {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .section-block-action:active { background: rgba(200,168,75,0.08); }
+
+  /* PHOTOS */
+  .photos-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-bottom: 10px;
+  }
+  .photos-scroll::-webkit-scrollbar { display: none; }
+
+  .photo-slot {
+    flex-shrink: 0;
+    width: 120px;
+    height: 90px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+  }
+  .photo-slot-add {
+    background: var(--bg3) !important;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+    border-style: dashed;
+  }
+  .photo-add-icon { font-size: 20px; color: var(--muted); }
+  .photo-add-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .photo-tag {
+    padding: 4px 8px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--white);
+    width: 100%;
+    text-align: center;
+  }
+  .photos-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+
+  /* REVIEW AGG */
+  .review-agg {
+    display: flex;
+    gap: 20px;
+    padding: 16px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+  .agg-overall { text-align: center; flex-shrink: 0; }
+  .agg-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 44px;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .agg-stars { color: var(--gold); font-size: 12px; margin: 2px 0; }
+  .agg-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  .agg-breakdown { flex: 1; display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+  .agg-row { display: flex; align-items: center; gap: 8px; }
+  .agg-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    width: 60px;
+    flex-shrink: 0;
+    text-transform: uppercase;
+  }
+  .agg-bar-track {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .agg-bar-fill { height: 100%; background: var(--gold); border-radius: 2px; }
+  .agg-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted2);
+    width: 20px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* REVIEW CARDS */
+  .review-card {
+    padding: 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+  }
+  .review-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .reviewer-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted2);
+    flex-shrink: 0;
+  }
+  .reviewer-info { flex: 1; }
+  .reviewer-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+  .reviewer-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+  .review-score-badge {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+  .review-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .review-chip {
+    padding: 4px 9px;
+    border-radius: 5px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+  }
+  .review-chip.good { background: rgba(76,175,125,0.08); color: var(--green); border: 1px solid rgba(76,175,125,0.2); }
+  .review-chip.ok { background: rgba(200,168,75,0.08); color: var(--gold); border: 1px solid rgba(200,168,75,0.2); }
+  .review-chip.bad { background: rgba(224,92,75,0.08); color: #e8856e; border: 1px solid rgba(224,92,75,0.2); }
+  .review-note {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted2);
+    font-weight: 300;
+  }
+
+  /* FORM */
+  .form-group { margin-bottom: 20px; }
+  .form-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted2);
+    margin-bottom: 10px;
+  }
+  .form-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .form-chip {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    color: var(--muted2);
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--bg3);
+  }
+  .form-chip.selected {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(200,168,75,0.07);
+  }
+
+  .rating-rows { display: flex; flex-direction: column; gap: 12px; }
+  .rating-row { display: flex; align-items: center; justify-content: space-between; }
+  .rating-label {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--white);
+  }
+  .star-row { display: flex; gap: 4px; }
+  .star {
+    font-size: 22px;
+    color: var(--bg3);
+    cursor: pointer;
+    transition: color 0.1s;
+    -webkit-text-stroke: 1px var(--muted);
+  }
+  .star.active {
+    color: var(--gold);
+    -webkit-text-stroke: 0px;
+  }
+
+  .form-textarea {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--white);
+    font-family: 'Lato', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    outline: none;
+    resize: none;
+    height: 80px;
+    line-height: 1.5;
+  }
+  .form-textarea::placeholder { color: var(--muted); }
+  .form-textarea:focus { border-color: rgba(200,168,75,0.35); }
+
+  .submit-btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--gold);
+    color: var(--bg);
+    border: none;
+    border-radius: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.15s;
+    margin-top: 4px;
+  }
+  .submit-btn:active { background: var(--gold2); }
+
+  .photo-drop-zone {
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .photo-drop-zone:active { border-color: var(--gold); }
+
+
+  /* ── MAP VIEW ── */
+  #screen-explore {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .map-header {
+    padding: 52px 16px 12px;
+    background: rgba(12,12,12,0.97);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    z-index: 10;
+  }
+
+  .map-city-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .map-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 3px;
+  }
+
+  .map-city-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  .map-city-select select {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    appearance: none;
+    cursor: pointer;
+    padding-right: 4px;
+  }
+  .map-city-select select option { background: #1a1a1a; }
+  .map-city-arrow { color: var(--gold); font-size: 10px; pointer-events: none; }
+
+  .map-filter-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .map-filter-scroll::-webkit-scrollbar { display: none; }
+
+  .map-chip {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted2);
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.15s;
+  }
+  .map-chip.active {
+    background: var(--gold);
+    color: var(--bg);
+    border-color: var(--gold);
+  }
+
+  /* MAP */
+  .map-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: #0f1218;
+    min-height: 0;
+  }
+
+  #map-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  #map-pins {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .map-pin {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    cursor: pointer;
+    pointer-events: all;
+    transition: transform 0.15s;
+  }
+  .map-pin:active { transform: translate(-50%, -100%) scale(0.9); }
+  .map-pin.selected .pin-bubble { box-shadow: 0 0 0 3px var(--gold), 0 4px 16px rgba(200,168,75,0.4); }
+
+  .pin-bubble {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    line-height: 1;
+    white-space: nowrap;
+    position: relative;
+    transition: all 0.15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+  .pin-bubble.elite {
+    background: var(--gold);
+    color: var(--bg);
+  }
+  .pin-bubble.verified {
+    background: var(--bg2);
+    color: var(--white);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .pin-bubble.dimmed {
+    opacity: 0.3;
+  }
+  .pin-tail {
+    width: 0; height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    margin: 0 auto;
+  }
+  .pin-tail.elite { border-top: 8px solid var(--gold); }
+  .pin-tail.verified { border-top: 8px solid var(--bg2); }
+
+  /* LEGEND + ZOOM */
+  .map-legend {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(12,12,12,0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted2);
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .legend-dot.gold { background: var(--gold); }
+  .legend-dot.white { background: var(--bg3); border: 1px solid rgba(255,255,255,0.2); }
+
+  .map-zoom {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .map-zoom button {
+    width: 36px; height: 36px;
+    background: rgba(12,12,12,0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--white);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .map-zoom button:active { background: var(--bg3); }
+
+  /* BOTTOM SHEET */
+  .map-sheet {
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+    padding: 8px 16px 16px;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
+  .sheet-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 12px;
+  }
+
+  .sheet-hint {
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 0;
+  }
+
+  .sheet-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 0 12px;
+  }
+
+  .sheet-rank {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    color: var(--gold);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 32px;
+    text-align: center;
+  }
+
+  .sheet-info { flex: 1; min-width: 0; }
+  .sheet-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sheet-loc {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted2);
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .sheet-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sheet-pill {
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--muted2);
+  }
+  .sheet-pill.hi { border-color: rgba(200,168,75,0.3); color: var(--gold); }
+
+  .sheet-score {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .sheet-score-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .sheet-score-lbl {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .sheet-open-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-top: 4px;
+  }
+  .sheet-open-btn:active { background: rgba(200,168,75,0.08); border-color: var(--gold); color: var(--gold); }
+
+
+  /* ── SPLASH ── */
+  #splash { position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;padding:48px 32px;transition:opacity 0.5s ease,transform 0.5s ease; }
+  #splash.hiding { opacity:0;transform:scale(1.04);pointer-events:none; }
+  .splash-inner { display:flex;flex-direction:column;align-items:center;text-align:center;animation:splashIn 0.8s cubic-bezier(0.16,1,0.3,1) both; }
+  @keyframes splashIn { from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none} }
+  .splash-inner::before { content:'';display:block;width:1px;height:60px;background:linear-gradient(to bottom,transparent,var(--gold));margin-bottom:32px; }
+  .splash-logo { font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:8px;color:var(--gold);margin-bottom:24px;line-height:1; }
+  .splash-logo span { color:var(--white); font-size:52px; letter-spacing:8px; }
+  .splash-tagline { font-family:'Playfair Display',serif;font-size:32px;font-weight:700;line-height:1.15;margin-bottom:16px; }
+  .splash-sub { font-size:14px;color:var(--muted2);line-height:1.6;font-weight:300;margin-bottom:48px; }
+  .splash-cta { padding:16px 40px;background:var(--gold);color:var(--bg);border:none;border-radius:12px;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:500;transition:background 0.15s,transform 0.15s; }
+  .splash-cta:active { background:var(--gold2);transform:scale(0.97); }
+
+  /* ── NEARBY ── */
+  .nearby-header { padding:52px 16px 12px;background:rgba(12,12,12,0.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10; }
+  .nearby-title { font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;line-height:1;margin-bottom:4px; }
+  .nearby-title em { font-family:'Playfair Display',serif;font-style:italic;color:var(--gold);font-size:32px; }
+  .nearby-sub { font-size:12px;color:var(--muted2);font-weight:300;margin-bottom:14px; }
+  .nearby-city-row { margin-bottom:10px; }
+  .nearby-city-chips { display:flex;gap:8px;overflow-x:auto;scrollbar-width:none; }
+  .nearby-city-chips::-webkit-scrollbar { display:none; }
+  .nearby-city-chip { flex-shrink:0;padding:6px 14px;border:1px solid var(--border);border-radius:100px;font-size:12px;color:var(--muted2);cursor:pointer;background:var(--bg2);transition:all 0.15s;white-space:nowrap; }
+  .nearby-city-chip.active { background:var(--gold);color:var(--bg);border-color:var(--gold);font-weight:700; }
+  .nearby-type-row { display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px; }
+  .nearby-type-row::-webkit-scrollbar { display:none; }
+  .nearby-type-chip { flex-shrink:0;padding:6px 12px;border:1px solid var(--border);border-radius:100px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);cursor:pointer;background:transparent;transition:all 0.15s;white-space:nowrap; }
+  .nearby-type-chip.active { background:var(--gold);color:var(--bg);border-color:var(--gold); }
+  .nearby-card { margin:10px 16px 0;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;gap:14px;cursor:pointer;transition:background 0.15s;animation:cardIn 0.3s ease both; }
+  .nearby-card:active { background:var(--bg3); }
+  .nearby-type-icon { width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0; }
+  .nearby-type-icon.commercial { background:rgba(200,168,75,0.1); }
+  .nearby-type-icon.crossfit { background:rgba(224,92,75,0.1); }
+  .nearby-type-icon.yoga { background:rgba(76,175,125,0.1); }
+  .nearby-type-icon.pilates { background:rgba(100,149,237,0.1); }
+  .nearby-info { flex:1;min-width:0; }
+  .nearby-name { font-size:15px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .nearby-type-label { font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px; }
+  .nearby-type-label.commercial { color:var(--gold); }
+  .nearby-type-label.crossfit { color:#e8856e; }
+  .nearby-type-label.yoga { color:var(--green); }
+  .nearby-type-label.pilates { color:#6495ed; }
+  .nearby-details { display:flex;gap:10px;flex-wrap:wrap; }
+  .nearby-detail { font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2);letter-spacing:0.5px; }
+  .nearby-right { text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between; }
+  .nearby-distance { font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:0.5px; }
+  .nearby-dropin { font-size:12px;color:var(--white);font-weight:700; }
+  .nearby-dropin-label { font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase; }
+  .nearby-section-label { font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:16px 16px 6px; }
+
+  /* ── SAVED GYMS ── */
+  .saved-header { padding:52px 16px 16px;background:rgba(12,12,12,0.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10; }
+  .saved-title { font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;line-height:1;margin-bottom:4px; }
+  .saved-title em { font-family:'Playfair Display',serif;font-style:italic;color:var(--gold);font-size:32px; }
+  .saved-sub { font-size:12px;color:var(--muted2);font-weight:300; }
+  .saved-card { margin:10px 16px 0;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;animation:cardIn 0.3s ease both; }
+  .saved-card-main { display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer; }
+  .saved-card-main:active { background:var(--bg3); }
+  .saved-card-rank { font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gold);width:28px;text-align:center;flex-shrink:0;line-height:1; }
+  .saved-card-info { flex:1;min-width:0; }
+  .saved-card-name { font-family:'Playfair Display',serif;font-size:15px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .saved-card-loc { font-size:12px;color:var(--muted2);font-weight:300; }
+  .saved-card-score { font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--gold);flex-shrink:0; }
+  .saved-card-actions { border-top:1px solid var(--border);display:flex; }
+  .saved-action-btn { flex:1;padding:10px;background:transparent;border:none;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:background 0.15s;color:var(--muted2); }
+  .saved-action-btn:first-child { border-right:1px solid var(--border); }
+  .saved-action-btn:active { background:var(--bg3); }
+  .saved-action-btn.remove { color:#e8856e; }
+
+  /* ── SHARE SHEET ── */
+  .share-sheet-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);z-index:200;display:none;align-items:flex-end;justify-content:center; }
+  .share-sheet-overlay.open { display:flex; }
+  .share-sheet { background:var(--bg2);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:20px 20px 40px;width:100%;max-width:430px;animation:sheetUp 0.3s cubic-bezier(0.16,1,0.3,1); }
+  @keyframes sheetUp { from{transform:translateY(100%)}to{transform:none} }
+  .share-handle { width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px; }
+  .share-title { font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:6px; }
+  .share-gym-name { font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:20px; }
+  .share-options { display:flex;flex-direction:column;gap:8px; }
+  .share-option { display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:background 0.15s; }
+  .share-option:active { background:rgba(200,168,75,0.08);border-color:var(--gold); }
+  .share-option-icon { font-size:20px;width:28px;text-align:center; }
+  .share-option-label { font-size:14px;font-weight:400; }
+  .share-option-sub { font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:0.5px;margin-top:2px; }
+  .share-cancel { width:100%;margin-top:12px;padding:14px;background:transparent;border:1px solid var(--border);border-radius:12px;color:var(--muted2);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer; }
+  .share-cancel:active { background:var(--bg3); }
+
+
+  /* ── PROFILE NAV ── */
+  .profile-nav-header { padding:52px 16px 16px;background:rgba(12,12,12,0.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10; }
+  .profile-nav-title { font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;line-height:1; }
+  .profile-nav-title em { font-family:'Playfair Display',serif;font-style:italic;color:var(--gold);font-size:32px; }
+
+  /* PREF CARDS */
+  .pref-card { margin:12px 16px 0;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden; }
+  .pref-card-header { display:flex;justify-content:space-between;align-items:center;padding:14px 16px; }
+  .pref-card-title { font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2); }
+  .pref-edit-btn { padding:6px 14px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--gold);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.15s; }
+  .pref-edit-btn:active { background:rgba(200,168,75,0.08); }
+
+  .pref-profile-display { display:flex;align-items:center;gap:14px;padding:0 16px 16px; }
+  .pref-profile-icon { width:48px;height:48px;background:rgba(200,168,75,0.1);border:1px solid rgba(200,168,75,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0; }
+  .pref-profile-name { font-size:15px;font-weight:700;margin-bottom:2px; }
+  .pref-profile-level { font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:0.5px; }
+
+  .pref-dealbreakers { display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 16px; }
+  .pref-db-tag { padding:6px 12px;border:1px solid rgba(200,168,75,0.3);border-radius:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);background:rgba(200,168,75,0.06); }
+
+  /* PREF SHEET OPTIONS */
+  .pref-style-opt { padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;font-size:14px;cursor:pointer;transition:all 0.15s; }
+  .pref-style-opt.selected { border-color:var(--gold);color:var(--gold);background:rgba(200,168,75,0.08); }
+  .pref-style-opt:active { background:var(--bg3); }
+
+  .pref-level-opt { flex:1;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;font-size:12px;text-align:center;cursor:pointer;transition:all 0.15s; }
+  .pref-level-opt.selected { border-color:var(--gold);color:var(--gold);background:rgba(200,168,75,0.08); }
+
+  /* ── ONBOARDING ── */
+  .ob-step { flex:1;display:flex;flex-direction:column;overflow-y:auto; }
+  .ob-content { padding:40px 24px 32px;display:flex;flex-direction:column;flex:1; }
+  .ob-step-label { font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:20px; }
+  .ob-title { font-family:'Playfair Display',serif;font-size:32px;font-weight:700;line-height:1.15;margin-bottom:10px; }
+  .ob-sub { font-size:13px;color:var(--muted2);font-weight:300;margin-bottom:28px;line-height:1.5; }
+
+  .ob-options { display:flex;flex-direction:column;gap:10px;flex:1; }
+  .ob-option { display:flex;align-items:center;gap:14px;padding:16px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;cursor:pointer;transition:all 0.15s; }
+  .ob-option:active { background:var(--bg3); }
+  .ob-option.selected { border-color:var(--gold);background:rgba(200,168,75,0.06); }
+  .ob-option-icon { font-size:24px;width:36px;text-align:center;flex-shrink:0; }
+  .ob-option-label { font-size:15px;font-weight:700;margin-bottom:2px; }
+  .ob-option-sub { font-size:12px;color:var(--muted2);font-weight:300; }
+
+  .ob-dealbreakers { display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px; }
+  .ob-db-chip { padding:10px 16px;border:1px solid var(--border);border-radius:100px;font-size:13px;color:var(--muted2);cursor:pointer;background:var(--bg2);transition:all 0.15s; }
+  .ob-db-chip.selected { border-color:var(--gold);color:var(--gold);background:rgba(200,168,75,0.08);font-weight:700; }
+  .ob-db-chip:active { opacity:0.7; }
+
+  .ob-finish-btn { width:100%;padding:16px;background:var(--gold);color:var(--bg);border:none;border-radius:12px;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:700;transition:background 0.15s; }
+  .ob-finish-btn:active { background:var(--gold2); }
+
+
+  /* ── PERSONALISATION ── */
+  .personal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: rgba(200,168,75,0.1);
+    border: 1px solid rgba(200,168,75,0.25);
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .warning-score { color: #e8856e !important; }
+
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-inner">
+    <div class="splash-logo">Lift<span>away</span></div>
+    <div class="splash-tagline">Train well,<br>wherever you are.</div>
+    <div class="splash-sub">Verified hotel gym scores,<br>equipment lists and real reviews.</div>
+    <button class="splash-cta" onclick="enterApp()">Explore Gyms &#8594;</button>
+  </div>
+</div>
+
+<div id="app" style="opacity:0;transition:opacity 0.4s ease;">
+
+  <!-- ══ HOME SCREEN ══ -->
+  <div class="screen active" id="screen-home">
+    <div class="home-header">
+      <div class="home-logo">Lift<span>away</span></div>
+      <h1 class="home-headline">Train well,<br><em>wherever</em> you go</h1>
+      <p class="home-sub">Verified hotel gym scores, equipment lists and real reviews — for serious travelers.</p>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="City or hotel name..." id="search-input">
+        <button class="search-btn-inner" onclick="goResults()">Search</button>
+      </div>
+    </div>
+
+    <div class="section-label">Popular Cities</div>
+    <div class="cities-scroll">
+      <div class="city-chip" onclick="selectCity(this, \"St. John's\")">St. John's</div>
+      <div class="city-chip" onclick="selectCity(this, 'Winnipeg')">Winnipeg</div>
+      <div class="city-chip" onclick="selectCity(this, 'Toronto')">Toronto</div>
+      <div class="city-chip" onclick="selectCity(this, 'New York')">New York</div>
+      <div class="city-chip" onclick="selectCity(this, 'London')">London</div>
+      <div class="city-chip" onclick="selectCity(this, 'Tokyo')">Tokyo</div>
+      <div class="city-chip" onclick="selectCity(this, 'Dubai')">Dubai</div>
+      <div class="city-chip" onclick="selectCity(this, 'Sydney')">Sydney</div>
+      <div class="city-chip" onclick="selectCity(this, 'Paris')">Paris</div>
+      <div class="city-chip" onclick="selectCity(this, 'Singapore')">Singapore</div>
+      <div class="city-chip" onclick="selectCity(this, 'Chicago')">Chicago</div>
+      <div class="city-chip" onclick="selectCity(this, 'Los Angeles')">Los Angeles</div>
+      <div class="city-chip" onclick="selectCity(this, 'Paris')">Paris</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-cell">
+        <div class="stat-n">2.8k</div>
+        <div class="stat-l">Hotels</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-n">94k</div>
+        <div class="stat-l">Items</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-n">318</div>
+        <div class="stat-l">Cities</div>
+      </div>
+    </div>
+
+    <div class="section-label">Top Rated This Week</div>
+
+    <div class="trending-card" onclick="goProfile(0)">
+      <div class="trending-rank gold">1</div>
+      <div class="trending-info">
+        <div class="trending-name">Four Seasons Midtown</div>
+        <div class="trending-loc">New York City · Elite</div>
+      </div>
+      <div class="trending-score">
+        <div class="t-score-num">96</div>
+        <div class="t-score-lbl">Score</div>
+      </div>
+    </div>
+
+    <div class="trending-card" onclick="goProfile(1)">
+      <div class="trending-rank gold">2</div>
+      <div class="trending-info">
+        <div class="trending-name">Aman Tokyo</div>
+        <div class="trending-loc">Tokyo · Elite</div>
+      </div>
+      <div class="trending-score">
+        <div class="t-score-num">93</div>
+        <div class="t-score-lbl">Score</div>
+      </div>
+    </div>
+
+    <div class="trending-card" onclick="goProfile(2)">
+      <div class="trending-rank gold">3</div>
+      <div class="trending-info">
+        <div class="trending-name">Rosewood Hong Kong</div>
+        <div class="trending-loc">Hong Kong · Verified</div>
+      </div>
+      <div class="trending-score">
+        <div class="t-score-num">89</div>
+        <div class="t-score-lbl">Score</div>
+      </div>
+    </div>
+
+    <div class="trending-card" onclick="goProfile(3)">
+      <div class="trending-rank">4</div>
+      <div class="trending-info">
+        <div class="trending-name">Park Hyatt Sydney</div>
+        <div class="trending-loc">Sydney · Verified</div>
+      </div>
+      <div class="trending-score">
+        <div class="t-score-num">87</div>
+        <div class="t-score-lbl">Score</div>
+      </div>
+    </div>
+
+    <div class="trending-card" onclick="goProfile(4)">
+      <div class="trending-rank">5</div>
+      <div class="trending-info">
+        <div class="trending-name">The Londoner</div>
+        <div class="trending-loc">London · New</div>
+      </div>
+      <div class="trending-score">
+        <div class="t-score-num">84</div>
+        <div class="t-score-lbl">Score</div>
+      </div>
+    </div>
+
+    <div class="home-pb"></div>
+  </div>
+
+  <!-- ══ RESULTS SCREEN ══ -->
+  <div class="screen" id="screen-results">
+    <div class="results-header">
+      <div class="back-btn" onclick="goBack('screen-home')">← Back</div>
+      <div class="results-title" id="results-city">New York</div>
+      <div class="results-meta">14 verified gyms · Sorted by score</div>
+      <div class="filter-scroll">
+        <div class="filter-chip on" onclick="toggleFilter(this)">All</div>
+        <div class="filter-chip" onclick="toggleFilter(this)">Barbell</div>
+        <div class="filter-chip" onclick="toggleFilter(this)">Cable</div>
+        <div class="filter-chip" onclick="toggleFilter(this)">Sauna</div>
+        <div class="filter-chip" onclick="toggleFilter(this)">Pool</div>
+        <div class="filter-chip" onclick="toggleFilter(this)">Cardio</div>
+        <div class="filter-chip" onclick="toggleFilter(this)">Recovery</div>
+      </div>
+    </div>
+
+    <div id="results-list"></div>
+    <div id="results-empty" style="display:none; text-align:center; padding: 48px 24px;">
+      <div style="font-size:36px; margin-bottom:12px;">🏋️</div>
+      <div style="font-family:'DM Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted2); margin-bottom:8px;">No gyms match</div>
+      <div style="font-size:13px; color:var(--muted); font-weight:300;">Try removing a filter or searching a different city</div>
+    </div>
+    <div class="results-pb"></div>
+  </div>
+
+  <!-- ══ PROFILE SCREEN ══ -->
+  <div class="screen" id="screen-profile">
+    <div class="profile-header">
+      <div class="back-btn" id="profile-back-btn" onclick="goBack('screen-results')">← Results</div>
+    </div>
+
+    <div class="profile-hero">
+      <div class="profile-name" id="p-name">Four Seasons Hotel Midtown</div>
+      <div class="profile-loc" id="p-loc">📍 57th Street, Midtown Manhattan, NYC</div>
+
+      <div class="score-hero">
+        <div class="score-big" id="p-score">96</div>
+        <div class="score-breakdown" id="p-bars"></div>
+      </div>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap;" id="p-badges"></div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div style="display:flex; gap:10px; padding: 20px 16px 0;">
+      <button onclick="toggleProfileSave(this)" style="flex:1; padding:14px; background:transparent; border:1px solid var(--border); border-radius:12px; color:var(--muted2); font-family:'DM Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; transition:all 0.15s;" id="profile-save-btn">&#128278; Save</button>
+      <button onclick="openShareSheet()" style="flex:1; padding:14px; background:transparent; border:1px solid var(--border); border-radius:12px; color:var(--muted2); font-family:'DM Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; transition:all 0.15s;">&#8599; Share</button>
+      <button onclick="bookHotel()" style="flex:1; padding:14px; background:var(--gold); border:1px solid var(--gold); border-radius:12px; color:var(--bg); font-family:'DM Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; font-weight:700; transition:background 0.15s;">&#128197; Book Hotel</button>
+    </div>
+
+    <!-- INFO -->
+    <div class="info-card">
+      <div class="info-row">
+        <span class="info-key">Hours</span>
+        <span class="info-val green">24 hrs · Always Open</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Floor Size</span>
+        <span class="info-val">4,200 sq ft</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Last Verified</span>
+        <span class="info-val gold">2 weeks ago</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Personal Training</span>
+        <span class="info-val green">Available</span>
+      </div>
+    </div>
+
+    <!-- EQUIPMENT -->
+    <div class="equip-section" id="p-equipment"></div>
+
+    <!-- PHOTOS -->
+    <div class="section-block">
+      <div class="section-block-header">
+        <div class="section-block-title">📷 Photos</div>
+        <button class="section-block-action" onclick="showPhotoUpload()">+ Add</button>
+      </div>
+      <div class="photos-scroll">
+        <div class="photo-slot photo-slot-add" onclick="showPhotoUpload()">
+          <div class="photo-add-icon">+</div>
+          <div class="photo-add-label">Add Photo</div>
+        </div>
+        <div class="photo-slot" style="background:linear-gradient(135deg,#2a2418,#1e1c12);">
+          <div class="photo-tag">Cardio Floor</div>
+        </div>
+        <div class="photo-slot" style="background:linear-gradient(135deg,#1a2018,#141e12);">
+          <div class="photo-tag">Free Weights</div>
+        </div>
+        <div class="photo-slot" style="background:linear-gradient(135deg,#14181e,#101418);">
+          <div class="photo-tag">Recovery</div>
+        </div>
+        <div class="photo-slot" style="background:linear-gradient(135deg,#201814,#1a1210);">
+          <div class="photo-tag">Olympic Platform</div>
+        </div>
+      </div>
+      <div class="photos-count">12 photos · Most recent first</div>
+    </div>
+
+    <!-- REVIEWS -->
+    <div class="section-block">
+      <div class="section-block-header">
+        <div class="section-block-title">⭑ Reviews</div>
+        <button class="section-block-action" onclick="showReviewForm()">+ Write</button>
+      </div>
+
+      <div class="review-agg">
+        <div class="agg-overall">
+          <div class="agg-num">4.7</div>
+          <div class="agg-stars">★★★★★</div>
+          <div class="agg-count">38 reviews</div>
+        </div>
+        <div class="agg-breakdown">
+          <div class="agg-row">
+            <div class="agg-label">Equipment</div>
+            <div class="agg-bar-track"><div class="agg-bar-fill" style="width:92%"></div></div>
+            <div class="agg-val">4.6</div>
+          </div>
+          <div class="agg-row">
+            <div class="agg-label">Cleanliness</div>
+            <div class="agg-bar-track"><div class="agg-bar-fill" style="width:96%"></div></div>
+            <div class="agg-val">4.8</div>
+          </div>
+          <div class="agg-row">
+            <div class="agg-label">Crowding</div>
+            <div class="agg-bar-track"><div class="agg-bar-fill" style="width:80%"></div></div>
+            <div class="agg-val">4.0</div>
+          </div>
+          <div class="agg-row">
+            <div class="agg-label">Condition</div>
+            <div class="agg-bar-track"><div class="agg-bar-fill" style="width:94%"></div></div>
+            <div class="agg-val">4.7</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="review-list">
+        <div class="review-card">
+          <div class="review-top">
+            <div class="reviewer-avatar">JM</div>
+            <div class="reviewer-info">
+              <div class="reviewer-name">James M.</div>
+              <div class="reviewer-meta">Stayed here · 2 weeks ago</div>
+            </div>
+            <div class="review-score-badge">4.8</div>
+          </div>
+          <div class="review-chips">
+            <div class="review-chip good">Equipment ★★★★★</div>
+            <div class="review-chip good">Clean ★★★★★</div>
+            <div class="review-chip ok">Crowding ★★★★</div>
+            <div class="review-chip good">Condition ★★★★★</div>
+          </div>
+          <div class="review-note">"Olympic platform in perfect condition. Cold plunge is the real deal — 10°C. Busier weekday mornings but never had to wait."</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-top">
+            <div class="reviewer-avatar">SR</div>
+            <div class="reviewer-info">
+              <div class="reviewer-name">Sarah R.</div>
+              <div class="reviewer-meta">Day visitor · 1 month ago</div>
+            </div>
+            <div class="review-score-badge">4.5</div>
+          </div>
+          <div class="review-chips">
+            <div class="review-chip good">Equipment ★★★★★</div>
+            <div class="review-chip good">Clean ★★★★★</div>
+            <div class="review-chip ok">Crowding ★★★</div>
+            <div class="review-chip ok">Condition ★★★★</div>
+          </div>
+          <div class="review-note">"Best hotel gym in NYC. Cable machine had a slight rattle but everything else flawless. Pelotons always available."</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-top">
+            <div class="reviewer-avatar">DK</div>
+            <div class="reviewer-info">
+              <div class="reviewer-name">David K.</div>
+              <div class="reviewer-meta">Stayed here · 6 weeks ago</div>
+            </div>
+            <div class="review-score-badge">5.0</div>
+          </div>
+          <div class="review-chips">
+            <div class="review-chip good">Equipment ★★★★★</div>
+            <div class="review-chip good">Clean ★★★★★</div>
+            <div class="review-chip good">Crowding ★★★★★</div>
+            <div class="review-chip good">Condition ★★★★★</div>
+          </div>
+          <div class="review-note">"Empty at 6am. Full Olympic setup, sauna immaculate. Exactly what the listing said. Rare."</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REVIEW FORM -->
+    <div class="section-block" id="review-form" style="display:none;">
+      <div class="section-block-header">
+        <div class="section-block-title">Your Review</div>
+        <button class="section-block-action" onclick="hideReviewForm()">Cancel</button>
+      </div>
+      <div class="form-group">
+        <div class="form-label">When did you visit?</div>
+        <div class="form-chips">
+          <div class="form-chip selected" onclick="selectFormChip(this,'visit')">This week</div>
+          <div class="form-chip" onclick="selectFormChip(this,'visit')">This month</div>
+          <div class="form-chip" onclick="selectFormChip(this,'visit')">1–3 months ago</div>
+          <div class="form-chip" onclick="selectFormChip(this,'visit')">Older</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">How were you visiting?</div>
+        <div class="form-chips">
+          <div class="form-chip selected" onclick="selectFormChip(this,'type')">Hotel guest</div>
+          <div class="form-chip" onclick="selectFormChip(this,'type')">Day visitor</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Rate each area</div>
+        <div class="rating-rows">
+          <div class="rating-row">
+            <div class="rating-label">Equipment</div>
+            <div class="star-row">
+              <span class="star active" onclick="rateStar(this)">★</span>
+              <span class="star active" onclick="rateStar(this)">★</span>
+              <span class="star active" onclick="rateStar(this)">★</span>
+              <span class="star active" onclick="rateStar(this)">★</span>
+              <span class="star" onclick="rateStar(this)">★</span>
+            </div>
+          </div>
+          <div class="rating-row">
+            <div class="rating-label">Cleanliness</div>
+            <div class="star-row">
+              <span class="star active" onclick="rateStar(this)">★</span>
+              <span class="star active" onclick="rateStar(this)">★</span>
+              <span class="star active" onclick="rateStar(this)">★</span>
+              <span class="star active" onclick="rateStar(this)">★</span>
+              <span class="star active" onclick="rateStar(this)">★</span>
+            </div>
+          </div>
+          <div class="rating-row">
+            <div class="rating-label">Crowding</div>
+            <div class="star-row">
+              <span class="star active" onclick="rateStar(this)">★</span>
+              <span class="star active" onclick="rateStar(this)">★</span>
+              <span class="star active" onclick="rateStar(this)">★</span>
+              <span class="star" onclick="rateStar(this)">★</span>
+              <span class="star" onclick="rateStar(this)">★</span>
+            </div>
+          </div>
+          <div class="rating-row">
+            <div class="rating-label">Condition</div>
+            <div class="star-row">
+              <span class="star active" onclick="rateStar(this)">★</span>
+              <span class="star active" onclick="rateStar(this)">★</span>
+              <span class="star active" onclick="rateStar(this)">★</span>
+              <span class="star active" onclick="rateStar(this)">★</span>
+              <span class="star" onclick="rateStar(this)">★</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Anything to flag? <span style="color:var(--muted)">Optional</span></div>
+        <div class="form-chips">
+          <div class="form-chip" onclick="toggleFormChip(this)">Broken equipment</div>
+          <div class="form-chip" onclick="toggleFormChip(this)">Very crowded</div>
+          <div class="form-chip" onclick="toggleFormChip(this)">Listing inaccurate</div>
+          <div class="form-chip" onclick="toggleFormChip(this)">Under renovation</div>
+          <div class="form-chip" onclick="toggleFormChip(this)">Great staff</div>
+          <div class="form-chip" onclick="toggleFormChip(this)">Hidden gem</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Note <span style="color:var(--muted)">Optional · 140 chars max</span></div>
+        <textarea class="form-textarea" maxlength="140" placeholder="Quick note for other gym-goers..."></textarea>
+      </div>
+      <button class="submit-btn" onclick="submitReview()">Submit Review</button>
+    </div>
+
+    <!-- PHOTO UPLOAD -->
+    <div class="section-block" id="photo-upload" style="display:none;">
+      <div class="section-block-header">
+        <div class="section-block-title">Add a Photo</div>
+        <button class="section-block-action" onclick="hidePhotoUpload()">Cancel</button>
+      </div>
+      <div class="photo-drop-zone">
+        <div style="font-size:32px;margin-bottom:8px">📷</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--muted2);text-transform:uppercase">Tap to upload</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;font-weight:300">JPG or PNG · Max 10MB</div>
+      </div>
+      <div class="form-group" style="margin-top:16px">
+        <div class="form-label">Tag this photo</div>
+        <div class="form-chips">
+          <div class="form-chip selected" onclick="selectFormChip(this,'phototag')">Cardio Floor</div>
+          <div class="form-chip" onclick="selectFormChip(this,'phototag')">Free Weights</div>
+          <div class="form-chip" onclick="selectFormChip(this,'phototag')">Strength</div>
+          <div class="form-chip" onclick="selectFormChip(this,'phototag')">Recovery</div>
+          <div class="form-chip" onclick="selectFormChip(this,'phototag')">Studio</div>
+          <div class="form-chip" onclick="selectFormChip(this,'phototag')">General</div>
+        </div>
+      </div>
+      <button class="submit-btn" onclick="hidePhotoUpload()">Upload Photo</button>
+    </div>
+
+    <div class="profile-pb"></div>
+  </div>
+
+  <!-- ══ EXPLORE (placeholder) ══ -->
+  <div class="screen" id="screen-explore">
+
+    <!-- MAP HEADER -->
+    <div class="map-header">
+      <div class="map-city-row">
+        <div class="map-title">Explore</div>
+        <div class="map-city-select">
+          <select id="map-city-select" onchange="mapSelectCity(this.value)">
+            <option value="St. John's">St. John's</option>
+            <option value="Winnipeg">Winnipeg</option>
+            <option value="Toronto">Toronto</option>
+            <option value="New York">New York</option>
+            <option value="London">London</option>
+            <option value="Tokyo">Tokyo</option>
+            <option value="Dubai">Dubai</option>
+            <option value="Sydney">Sydney</option>
+          </select>
+          <span class="map-city-arrow">▾</span>
+        </div>
+      </div>
+      <div class="map-filter-scroll">
+        <div class="map-chip active" onclick="mapFilter(this,'all')">All</div>
+        <div class="map-chip" onclick="mapFilter(this,'elite')">⭑ Elite</div>
+        <div class="map-chip" onclick="mapFilter(this,'barbell')">Barbell</div>
+        <div class="map-chip" onclick="mapFilter(this,'pool')">Pool</div>
+        <div class="map-chip" onclick="mapFilter(this,'sauna')">Sauna</div>
+        <div class="map-chip" onclick="mapFilter(this,'recovery')">Recovery</div>
+      </div>
+    </div>
+
+    <!-- MAP CANVAS -->
+    <div class="map-wrap">
+      <canvas id="map-canvas"></canvas>
+      <div id="map-pins"></div>
+      <!-- Score legend -->
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-dot gold"></div><span>Elite 90+</span></div>
+        <div class="legend-item"><div class="legend-dot white"></div><span>Verified</span></div>
+      </div>
+      <!-- Zoom controls -->
+      <div class="map-zoom">
+        <button onclick="mapZoom(1)">+</button>
+        <button onclick="mapZoom(-1)">−</button>
+      </div>
+    </div>
+
+    <!-- GYM BOTTOM SHEET -->
+    <div class="map-sheet" id="map-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-content" id="sheet-content">
+        <div class="sheet-hint">Tap a pin to see gym details</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ SAVED (placeholder) ══ -->
+  <!-- ══ NEARBY GYMS SCREEN ══ -->
+  <div class="screen" id="screen-saved">
+    <div class="nearby-header">
+      <div class="nearby-title">Nearby <em>Gyms</em></div>
+      <div class="nearby-sub">Drop-ins, boxes and studios near your hotel</div>
+      <div class="nearby-city-row">
+        <div class="nearby-city-chips">
+          <div class="nearby-city-chip active" onclick="nearbySelectCity(this,&quot;St. John's&quot;)">St. John's</div>
+          <div class="nearby-city-chip" onclick="nearbySelectCity(this,'Winnipeg')">Winnipeg</div>
+          <div class="nearby-city-chip" onclick="nearbySelectCity(this,'Toronto')">Toronto</div>
+          <div class="nearby-city-chip" onclick="nearbySelectCity(this,'New York')">New York</div>
+          <div class="nearby-city-chip" onclick="nearbySelectCity(this,'London')">London</div>
+          <div class="nearby-city-chip" onclick="nearbySelectCity(this,'Tokyo')">Tokyo</div>
+          <div class="nearby-city-chip" onclick="nearbySelectCity(this,'Dubai')">Dubai</div>
+          <div class="nearby-city-chip" onclick="nearbySelectCity(this,'Sydney')">Sydney</div>
+          <div class="nearby-city-chip" onclick="nearbySelectCity(this,'Chicago')">Chicago</div>
+          <div class="nearby-city-chip" onclick="nearbySelectCity(this,'Los Angeles')">Los Angeles</div>
+          <div class="nearby-city-chip" onclick="nearbySelectCity(this,'Paris')">Paris</div>
+          <div class="nearby-city-chip" onclick="nearbySelectCity(this,'Singapore')">Singapore</div>
+        </div>
+      </div>
+      <div class="nearby-type-row">
+        <div class="nearby-type-chip active" onclick="nearbyFilter(this,'all')">All</div>
+        <div class="nearby-type-chip" onclick="nearbyFilter(this,'commercial')">&#127947; Commercial</div>
+        <div class="nearby-type-chip" onclick="nearbyFilter(this,'crossfit')">&#9889; CrossFit</div>
+        <div class="nearby-type-chip" onclick="nearbyFilter(this,'yoga')">&#129338; Yoga</div>
+        <div class="nearby-type-chip" onclick="nearbyFilter(this,'pilates')">&#127992; Pilates</div>
+      </div>
+    </div>
+    <div id="nearby-list"></div>
+    <div id="nearby-empty" style="display:none;text-align:center;padding:48px 24px;">
+      <div style="font-size:36px;margin-bottom:12px">&#127947;</div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2)">No gyms match</div>
+    </div>
+    <div style="height:24px"></div>
+  </div>
+
+  <!-- ══ SAVED GYMS SCREEN ══ -->
+  <!-- ══ PROFILE SCREEN ══ -->
+  <div class="screen" id="screen-profile-nav">
+
+    <!-- Profile Header -->
+    <div class="profile-nav-header">
+      <div class="profile-nav-title">My <em>Profile</em></div>
+    </div>
+
+    <!-- Training Profile Card -->
+    <div class="pref-card">
+      <div class="pref-card-header">
+        <div class="pref-card-title">Training Profile</div>
+        <button class="pref-edit-btn" onclick="openPrefSheet()">Edit</button>
+      </div>
+      <div class="pref-profile-display" id="pref-profile-display">
+        <div class="pref-profile-icon" id="pref-icon">&#9878;</div>
+        <div class="pref-profile-info">
+          <div class="pref-profile-name" id="pref-name">Not set</div>
+          <div class="pref-profile-level" id="pref-level">Tap Edit to set your profile</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dealbreakers Card -->
+    <div class="pref-card">
+      <div class="pref-card-header">
+        <div class="pref-card-title">My Dealbreakers</div>
+        <button class="pref-edit-btn" onclick="openPrefSheet()">Edit</button>
+      </div>
+      <div class="pref-dealbreakers" id="pref-dealbreakers-display">
+        <div style="font-size:13px;color:var(--muted);font-weight:300">No dealbreakers set</div>
+      </div>
+    </div>
+
+    <!-- Saved Gyms -->
+    <div class="pref-card-header" style="padding: 16px 16px 8px;">
+      <div class="pref-card-title">Saved Gyms</div>
+    </div>
+    <div id="saved-list"></div>
+    <div id="saved-empty" style="text-align:center;padding:32px 24px;">
+      <div style="font-size:36px;margin-bottom:12px">&#128278;</div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px">No saved gyms yet</div>
+      <div style="font-size:13px;color:var(--muted);font-weight:300;max-width:220px;margin:0 auto">Tap Save on any gym to add it here</div>
+    </div>
+    <div style="height:24px"></div>
+  </div>
+
+  <!-- ══ ONBOARDING FLOW ══ -->
+  <div id="onboarding" style="position:fixed;inset:0;background:var(--bg);z-index:8000;display:none;flex-direction:column;">
+
+    <!-- Progress bar -->
+    <div style="height:3px;background:rgba(255,255,255,0.06);">
+      <div id="ob-progress" style="height:100%;background:var(--gold);transition:width 0.4s ease;width:33%"></div>
+    </div>
+
+    <!-- Step 1 — Training Style -->
+    <div id="ob-step1" class="ob-step active">
+      <div class="ob-content">
+        <div class="ob-step-label">Step 1 of 3</div>
+        <div class="ob-title">What best describes<br>your training?</div>
+        <div class="ob-sub">We'll personalise your gym scores accordingly</div>
+        <div class="ob-options">
+          <div class="ob-option" onclick="selectStyle(this,'strength','&#127947;','Strength & Powerlifting')">
+            <div class="ob-option-icon">&#127947;</div>
+            <div class="ob-option-label">Strength & Powerlifting</div>
+            <div class="ob-option-sub">Barbells, racks, heavy compound lifts</div>
+          </div>
+          <div class="ob-option" onclick="selectStyle(this,'cardio','&#127939;','Cardio & Running')">
+            <div class="ob-option-icon">&#127939;</div>
+            <div class="ob-option-label">Cardio & Running</div>
+            <div class="ob-option-sub">Treadmills, bikes, rowing machines</div>
+          </div>
+          <div class="ob-option" onclick="selectStyle(this,'crossfit','&#9889;','CrossFit & Functional')">
+            <div class="ob-option-icon">&#9889;</div>
+            <div class="ob-option-label">CrossFit & Functional</div>
+            <div class="ob-option-sub">WODs, kettlebells, functional rigs</div>
+          </div>
+          <div class="ob-option" onclick="selectStyle(this,'yoga','&#129338;','Yoga & Recovery')">
+            <div class="ob-option-icon">&#129338;</div>
+            <div class="ob-option-label">Yoga & Recovery</div>
+            <div class="ob-option-sub">Studios, sauna, stretching, mobility</div>
+          </div>
+          <div class="ob-option" onclick="selectStyle(this,'general','&#9878;','General Fitness')">
+            <div class="ob-option-icon">&#9878;</div>
+            <div class="ob-option-label">General Fitness</div>
+            <div class="ob-option-sub">Mix of everything, no strong preference</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 — Commitment Level -->
+    <div id="ob-step2" class="ob-step" style="display:none;">
+      <div class="ob-content">
+        <div class="ob-step-label">Step 2 of 3</div>
+        <div class="ob-title">How serious is<br>your training?</div>
+        <div class="ob-sub">This affects how strictly we apply your preferences</div>
+        <div class="ob-options">
+          <div class="ob-option" onclick="selectLevel(this,'casual','Casual','A few times a week, no strict program')">
+            <div class="ob-option-icon">&#128524;</div>
+            <div class="ob-option-label">Casual</div>
+            <div class="ob-option-sub">A few times a week, no strict program</div>
+          </div>
+          <div class="ob-option" onclick="selectLevel(this,'committed','Committed','4-5x a week, follow a program')">
+            <div class="ob-option-icon">&#128170;</div>
+            <div class="ob-option-label">Committed</div>
+            <div class="ob-option-sub">4-5x a week, follow a program</div>
+          </div>
+          <div class="ob-option" onclick="selectLevel(this,'serious','Serious','Training is non-negotiable')">
+            <div class="ob-option-icon">&#128293;</div>
+            <div class="ob-option-label">Serious</div>
+            <div class="ob-option-sub">Training is non-negotiable, every day counts</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 — Dealbreakers -->
+    <div id="ob-step3" class="ob-step" style="display:none;">
+      <div class="ob-content">
+        <div class="ob-step-label">Step 3 of 3</div>
+        <div class="ob-title">Your dealbreakers</div>
+        <div class="ob-sub">Pick up to 3 things you can't train without</div>
+        <div class="ob-dealbreakers" id="ob-dealbreaker-grid">
+          <div class="ob-db-chip" onclick="toggleDealbreaker(this,'barbell')">&#127947; Barbell & Rack</div>
+          <div class="ob-db-chip" onclick="toggleDealbreaker(this,'cable')">&#9196; Cable Machine</div>
+          <div class="ob-db-chip" onclick="toggleDealbreaker(this,'peloton')">&#128692; Peloton / Spin</div>
+          <div class="ob-db-chip" onclick="toggleDealbreaker(this,'pool')">&#127946; Pool</div>
+          <div class="ob-db-chip" onclick="toggleDealbreaker(this,'sauna')">&#129494; Sauna / Steam</div>
+          <div class="ob-db-chip" onclick="toggleDealbreaker(this,'coldplunge')">&#129398; Cold Plunge</div>
+          <div class="ob-db-chip" onclick="toggleDealbreaker(this,'functional')">&#9881; Functional Rig</div>
+          <div class="ob-db-chip" onclick="toggleDealbreaker(this,'24hr')">&#128336; 24hr Access</div>
+          <div class="ob-db-chip" onclick="toggleDealbreaker(this,'none')">&#10006; No dealbreakers</div>
+        </div>
+        <button class="ob-finish-btn" onclick="finishOnboarding()">Find My Gyms &#8594;</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ PREFERENCE EDIT SHEET ══ -->
+  <div class="share-sheet-overlay" id="pref-overlay" onclick="closePrefSheet(event)">
+    <div class="share-sheet" style="max-height:85vh;overflow-y:auto;">
+      <div class="share-handle"></div>
+      <div class="share-title">Training Preferences</div>
+
+      <div style="margin-bottom:20px;">
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Training Style</div>
+        <div style="display:flex;flex-direction:column;gap:8px;" id="pref-style-options">
+          <div class="pref-style-opt" onclick="setPrefStyle(this,'strength','&#127947;','Strength & Powerlifting')">&#127947; Strength & Powerlifting</div>
+          <div class="pref-style-opt" onclick="setPrefStyle(this,'cardio','&#127939;','Cardio & Running')">&#127939; Cardio & Running</div>
+          <div class="pref-style-opt" onclick="setPrefStyle(this,'crossfit','&#9889;','CrossFit & Functional')">&#9889; CrossFit & Functional</div>
+          <div class="pref-style-opt" onclick="setPrefStyle(this,'yoga','&#129338;','Yoga & Recovery')">&#129338; Yoga & Recovery</div>
+          <div class="pref-style-opt" onclick="setPrefStyle(this,'general','&#9878;','General Fitness')">&#9878; General Fitness</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Commitment Level</div>
+        <div style="display:flex;gap:8px;" id="pref-level-options">
+          <div class="pref-level-opt" onclick="setPrefLevel(this,'casual','Casual')">&#128524; Casual</div>
+          <div class="pref-level-opt" onclick="setPrefLevel(this,'committed','Committed')">&#128170; Committed</div>
+          <div class="pref-level-opt" onclick="setPrefLevel(this,'serious','Serious')">&#128293; Serious</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Dealbreakers (max 3)</div>
+        <div class="ob-dealbreakers" id="pref-db-grid">
+          <div class="ob-db-chip" onclick="togglePrefDB(this,'barbell')">&#127947; Barbell & Rack</div>
+          <div class="ob-db-chip" onclick="togglePrefDB(this,'cable')">&#9196; Cable Machine</div>
+          <div class="ob-db-chip" onclick="togglePrefDB(this,'peloton')">&#128692; Peloton / Spin</div>
+          <div class="ob-db-chip" onclick="togglePrefDB(this,'pool')">&#127946; Pool</div>
+          <div class="ob-db-chip" onclick="togglePrefDB(this,'sauna')">&#129494; Sauna / Steam</div>
+          <div class="ob-db-chip" onclick="togglePrefDB(this,'coldplunge')">&#129398; Cold Plunge</div>
+          <div class="ob-db-chip" onclick="togglePrefDB(this,'functional')">&#9881; Functional Rig</div>
+          <div class="ob-db-chip" onclick="togglePrefDB(this,'24hr')">&#128336; 24hr Access</div>
+        </div>
+      </div>
+
+      <button class="submit-btn" onclick="savePrefSheet()">Save Preferences</button>
+      <button class="share-cancel" onclick="closePrefSheet()" style="margin-top:8px;">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ══ SHARE SHEET ══ -->
+  <div class="share-sheet-overlay" id="share-overlay" onclick="closeShareSheet(event)">
+    <div class="share-sheet">
+      <div class="share-handle"></div>
+      <div class="share-title">Share this gym</div>
+      <div class="share-gym-name" id="share-gym-name"></div>
+      <div class="share-options">
+        <div class="share-option" onclick="shareAction('copy')">
+          <div class="share-option-icon">&#128279;</div>
+          <div><div class="share-option-label">Copy Link</div><div class="share-option-sub" id="share-url-sub">liftaway.app/gym/...</div></div>
+        </div>
+        <div class="share-option" onclick="shareAction('message')">
+          <div class="share-option-icon">&#128172;</div>
+          <div><div class="share-option-label">Send via Message</div><div class="share-option-sub">iMessage, WhatsApp, SMS</div></div>
+        </div>
+        <div class="share-option" onclick="shareAction('native')">
+          <div class="share-option-icon">&#8599;</div>
+          <div><div class="share-option-label">More Options</div><div class="share-option-sub">Email, Slack, Instagram...</div></div>
+        </div>
+      </div>
+      <button class="share-cancel" onclick="closeShareSheet()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ══ BOOKING SHEET ══ -->
+  <div class="share-sheet-overlay" id="booking-overlay" onclick="closeBookingSheet(event)">
+    <div class="share-sheet">
+      <div class="share-handle"></div>
+      <div class="share-title">Book this hotel</div>
+      <div class="share-gym-name" id="booking-hotel-name"></div>
+      <div class="share-options">
+        <a id="booking-expedia" href="#" target="_blank" onclick="closeBookingSheet()" style="text-decoration:none;">
+          <div class="share-option">
+            <div class="share-option-icon">✈️</div>
+            <div><div class="share-option-label">Expedia</div><div class="share-option-sub">Hotels, flights and packages</div></div>
+          </div>
+        </a>
+        <a id="booking-kayak" href="#" target="_blank" onclick="closeBookingSheet()" style="text-decoration:none;">
+          <div class="share-option">
+            <div class="share-option-icon">🔍</div>
+            <div><div class="share-option-label">Kayak</div><div class="share-option-sub">Compare prices across sites</div></div>
+          </div>
+        </a>
+        <a id="booking-booking" href="#" target="_blank" onclick="closeBookingSheet()" style="text-decoration:none;">
+          <div class="share-option">
+            <div class="share-option-icon">🏨</div>
+            <div><div class="share-option-label">Booking.com</div><div class="share-option-sub">Best price guarantee</div></div>
+          </div>
+        </a>
+      </div>
+      <button class="share-cancel" onclick="closeBookingSheet()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ══ BOTTOM NAV ══ -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="navTo('home')">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label">Home</div>
+    </div>
+    <div class="nav-item" id="nav-explore" onclick="navTo('explore')">
+      <div class="nav-icon">🗺️</div>
+      <div class="nav-label">Explore</div>
+    </div>
+    <div class="nav-item" id="nav-saved" onclick="navTo('saved')">
+      <div class="nav-icon">🏋️</div>
+      <div class="nav-label">Nearby</div>
+    </div>
+    <div class="nav-item" id="nav-profile-nav" onclick="navTo('profile-nav')">
+      <div class="nav-icon">👤</div>
+      <div class="nav-label">Profile</div>
+    </div>
+  </nav>
+
+</div>
+
+<script>
+const gyms = [
+  {
+    name: "Four Seasons Hotel Midtown",
+    loc: "📍 57th Street, Midtown Manhattan, NYC",
+    score: 96,
+    equipment: 88, space: 94, staff: 96, clean: 98,
+    badges: [{t:'elite',l:'⭑ Elite'},{t:'verified',l:'✓ Verified'}],
+    categories: {
+      "🏃 Cardio": [
+        {n:"Treadmill (NordicTrack X32i)", d:"×5"},
+        {n:"Peloton Bike", d:"×4"},
+        {n:"Rowing Machine (Concept2)", d:"×2"},
+        {n:"Stairmaster", d:"×2"},
+        {n:"Ski Erg", d:"×1"},
+      ],
+      "🏋️ Strength": [
+        {n:"Olympic Barbell Set", d:"20–220lb", gold:true},
+        {n:"Olympic Lifting Platform", d:"×2", gold:true},
+        {n:"Cable System (Technogym)", d:"Full"},
+        {n:"Smith Machine", d:"×1"},
+        {n:"Leg Press", d:"×1"},
+        {n:"Hack Squat", d:"×1"},
+      ],
+      "⚙️ Functional": [
+        {n:"Functional Training Rig", d:"Full", gold:true},
+        {n:"Kettlebells", d:"8–48kg"},
+        {n:"Battle Ropes", d:"×2"},
+        {n:"Plyo Boxes", d:"Set"},
+        {n:"TRX Suspension", d:"×4"},
+      ],
+      "🧊 Recovery": [
+        {n:"Finnish Sauna", d:"12-person", gold:true},
+        {n:"Cold Plunge Pool", d:"10°C", gold:true},
+        {n:"Steam Room", d:"×1"},
+        {n:"Stretching Zone", d:"Full"},
+      ]
+    }
+  },
+  {
+    name: "Aman Tokyo",
+    loc: "📍 Otemachi Tower, Chiyoda-ku, Tokyo",
+    score: 93,
+    equipment: 82, space: 98, staff: 99, clean: 99,
+    badges: [{t:'elite',l:'⭑ Elite'}],
+    categories: {
+      "🏃 Cardio": [
+        {n:"Treadmill (Technogym)", d:"×4"},
+        {n:"Elliptical", d:"×4"},
+        {n:"Upright Bike", d:"×2"},
+      ],
+      "🏋️ Strength": [
+        {n:"Dumbbell Set", d:"5–80lb"},
+        {n:"Cable Crossover", d:"×1"},
+        {n:"Functional Trainer", d:"×1"},
+      ],
+      "🧘 Studio": [
+        {n:"Private Yoga Studio", gold:true},
+        {n:"Pilates Reformer", d:"×3", gold:true},
+        {n:"Meditation Room", gold:true},
+      ],
+      "🧊 Recovery": [
+        {n:"Onsen (Japanese Bath)", gold:true},
+        {n:"Sauna", d:"×1"},
+        {n:"Massage Rooms", d:"×4"},
+      ]
+    }
+  },
+  {
+    name: "Rosewood Hong Kong",
+    loc: "📍 Victoria Dockside, Tsim Sha Tsui",
+    score: 89,
+    equipment: 86, space: 88, staff: 90, clean: 96,
+    badges: [{t:'verified',l:'✓ Verified'}],
+    categories: {
+      "🏃 Cardio": [
+        {n:"Treadmill (Life Fitness)", d:"×5"},
+        {n:"Bike (Stages)", d:"×4"},
+        {n:"Rowing (Concept2)", d:"×2"},
+        {n:"Ski Erg", d:"×2"},
+      ],
+      "🏋️ Strength": [
+        {n:"Power Rack", d:"×2"},
+        {n:"Dumbbell Set", d:"Full"},
+        {n:"Cable Crossover", d:"×1"},
+      ],
+      "🥊 Combat": [
+        {n:"Boxing Ring", d:"Full Size", gold:true},
+        {n:"Heavy Bags", d:"×4", gold:true},
+        {n:"Speed Bags", d:"×2"},
+      ],
+      "🧊 Recovery": [
+        {n:"Rooftop Pool", gold:true},
+        {n:"Sauna", d:"×1"},
+        {n:"Ice Bath", d:"×2"},
+      ]
+    }
+  },
+  {
+    name: "Park Hyatt Sydney",
+    loc: "📍 7 Hickson Rd, The Rocks, Sydney",
+    score: 87,
+    equipment: 84, space: 90, staff: 88, clean: 95,
+    badges: [{t:'verified',l:'✓ Verified'}],
+    categories: {
+      "🏃 Cardio": [
+        {n:"Treadmill", d:"×4"},
+        {n:"Spin Studio", d:"8 bikes", gold:true},
+        {n:"Rowing Machine", d:"×2"},
+      ],
+      "🏋️ Strength": [
+        {n:"Dumbbell Set", d:"5–100lb"},
+        {n:"Barbell Rack", d:"×1"},
+        {n:"Full Cable System", d:"×1"},
+      ],
+      "🏊 Aquatic": [
+        {n:"Indoor Pool (25m)", d:"Olympic", gold:true},
+        {n:"Jacuzzi", d:"×1"},
+      ],
+      "🧊 Recovery": [
+        {n:"Sauna", d:"×1"},
+        {n:"Steam Room", d:"×1"},
+      ]
+    }
+  },
+  {
+    name: "The Londoner",
+    loc: "📍 Leicester Square, London",
+    score: 84,
+    equipment: 80, space: 82, staff: 86, clean: 90,
+    badges: [{t:'new',l:'◆ New'}],
+    categories: {
+      "🏃 Cardio": [
+        {n:"Treadmill (Precor)", d:"×4"},
+        {n:"Elliptical", d:"×3"},
+        {n:"Stationary Bike", d:"×3"},
+      ],
+      "🏋️ Strength": [
+        {n:"Dumbbell Set", d:"5–80lb"},
+        {n:"Smith Machine", d:"×1"},
+        {n:"Multi-Station", d:"×1"},
+      ],
+      "🧘 Wellness": [
+        {n:"Yoga Room", gold:true},
+        {n:"Steam Room", d:"×1"},
+        {n:"Jacuzzi", d:"×1"},
+      ]
+    }
+  },
+  {
+    name: "1 Hotel Central Park",
+    loc: "📍 1414 6th Ave, Central Park South",
+    score: 91,
+    equipment: 85, space: 92, staff: 90, clean: 94,
+    badges: [{t:'elite',l:'⭑ Elite'}],
+    categories: {
+      "🏃 Cardio": [
+        {n:"Rooftop Running Track", d:"1/8 mile", gold:true},
+        {n:"Treadmill", d:"×4"},
+        {n:"Rowing Machine", d:"×2"},
+      ],
+      "🏋️ Strength": [
+        {n:"Barbell Set", d:"Full"},
+        {n:"Cable System", d:"×2"},
+        {n:"Dumbbell Set", d:"5–100lb"},
+      ],
+      "🧘 Studio": [
+        {n:"Yoga Studio", gold:true},
+        {n:"Pilates Reformer", d:"×2"},
+      ],
+      "🧊 Recovery": [
+        {n:"Steam Room", d:"×1"},
+        {n:"Cold Shower Station", d:"×4"},
+      ]
+    }
+  },
+  {
+    name: "Equinox Hotel Hudson Yards",
+    loc: "📍 33 Hudson Yards, New York",
+    score: 88,
+    equipment: 92, space: 86, staff: 88, clean: 95,
+    badges: [{t:'elite',l:'⭑ Elite'},{t:'new',l:'◆ New'}],
+    categories: {
+      "🏃 Cardio": [
+        {n:"Full Equinox Cardio Floor", d:"×20+", gold:true},
+        {n:"Peloton", d:"×6"},
+        {n:"Ski Erg", d:"×3"},
+      ],
+      "🏋️ Strength": [
+        {n:"Olympic Platform", d:"×3", gold:true},
+        {n:"Full Free Weight Floor", d:"Complete"},
+        {n:"Cable System", d:"×6"},
+      ],
+      "🏊 Aquatic": [
+        {n:"Lap Pool (25yd)", gold:true},
+        {n:"Hot Tub", d:"×1"},
+      ],
+      "🧊 Recovery": [
+        {n:"Sauna", d:"×2"},
+        {n:"Cold Plunge", d:"×2", gold:true},
+      ]
+    }
+  }
+];
+
+let currentCity = 'New York';
+let fromScreen = 'screen-results';
+
+function selectCity(el, city) {
+  document.querySelectorAll('.city-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  currentCity = city;
+  document.getElementById('search-input').value = city;
+  setTimeout(() => goResults(), 200);
+}
+
+function goResults() {
+  const raw = document.getElementById('search-input').value.trim();
+  if (raw) currentCity = raw;
+
+  // Fuzzy match to available cities — exact first, then starts-with, then contains
+  const available = Object.keys(cityGyms);
+  const input = currentCity.toLowerCase();
+  // Normalise both sides — strip punctuation for comparison
+  const normalise = s => s.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+  const normInput = normalise(input);
+  const match =
+    available.find(city => normalise(city) === normInput) ||
+    available.find(city => normalise(city).startsWith(normInput) && normInput.length >= 2) ||
+    available.find(city => normInput.startsWith(normalise(city))) ||
+    available.find(city => normalise(city).includes(normInput) && normInput.length >= 3);
+  if (match) currentCity = match;
+
+  document.getElementById('results-city').textContent = currentCity;
+  activeFilters.clear();
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('on'));
+  document.querySelectorAll('.filter-chip')[0].classList.add('on');
+  showScreen('screen-results');
+  renderResults(currentCity);
+  updateNav(null);
+}
+
+function goProfile(idx) {
+  const g = gyms[idx] || gyms[0];
+  fromScreen = document.querySelector('.screen.active').id;
+  currentProfileGym = Object.assign({}, g, {profileIdx: idx});
+
+  document.getElementById('p-name').textContent = g.name;
+  document.getElementById('p-loc').textContent = g.loc;
+  document.getElementById('p-score').textContent = g.score;
+
+  // back button label
+  document.getElementById('profile-back-btn').onclick = () => goBack(fromScreen);
+
+  // bars
+  const bars = document.getElementById('p-bars');
+  bars.innerHTML = [
+    ['Equip', g.equipment],
+    ['Space', g.space],
+    ['Staff', g.staff],
+    ['Clean', g.clean]
+  ].map(([l,v]) => `
+    <div class="score-row">
+      <div class="score-row-label">${l}</div>
+      <div class="score-track"><div class="score-fill" style="width:${v}%"></div></div>
+      <div class="score-val">${v}</div>
+    </div>
+  `).join('');
+
+  // badges
+  document.getElementById('p-badges').innerHTML = g.badges.map(b =>
+    `<span class="badge badge-${b.t}">${b.l}</span>`
+  ).join('');
+
+  // equipment
+  const eq = document.getElementById('p-equipment');
+  eq.innerHTML = Object.entries(g.categories).map(([cat, items]) => `
+    <div class="equip-cat-title">${cat}</div>
+    <div class="equip-list">
+      ${items.map(item => `
+        <div class="equip-row">
+          <div class="equip-dot ${item.gold ? 'gold' : ''}"></div>
+          <div class="equip-row-name">${item.n}</div>
+          ${item.d ? `<div class="equip-row-detail">${item.d}</div>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+
+  showScreen('screen-profile');
+  updateNav(null);
+}
+
+function goBack(target) {
+  const current = document.querySelector('.screen.active');
+  current.classList.add('slide-back');
+  setTimeout(() => { current.classList.remove('slide-back'); }, 350);
+  showScreen(target);
+  if (target === 'screen-home') updateNav('home');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById(id);
+  if (target) {
+    target.scrollTop = 0;
+    target.classList.add('active');
+  }
+}
+
+function navTo(name) {
+  const map = {
+    'home': 'screen-home',
+    'explore': 'screen-explore',
+    'saved': 'screen-saved',
+    'profile-nav': 'screen-profile-nav'
+  };
+  showScreen(map[name] || 'screen-home');
+  updateNav(name);
+  if (name === 'explore') {
+    setTimeout(initMap, 50);
+  }
+  if (name === 'saved') {
+    setTimeout(renderNearby, 50);
+  }
+  if (name === 'profile-nav') {
+    setTimeout(renderSavedGyms, 50);
+  }
+}
+
+// init results on load
+// DOMContentLoaded handled in onboarding JS
+
+function updateNav(active) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (active) {
+    const el = document.getElementById('nav-' + active);
+    if (el) el.classList.add('active');
+  }
+}
+
+// ── CITY GYM DATA ──
+const cityGyms = {
+  "St. John's": [
+    {
+      id: 0, rank: 1, name: "Alt Hotel St. John's", loc: "New Gower St, Downtown",
+      score: 81, badge: 'elite', badges: [{t:'elite',l:'⭑ Elite'},{t:'new',l:'◆ New'}],
+      highlights: ["Modern Equipment","24hrs"],
+      tags: ["cardio","cable","functional"],
+      pills: [{hi:true,t:"Modern Equipment"},{hi:false,t:"Treadmills"},{hi:false,t:"Free Weights"},{hi:false,t:"Cables"}]
+    },
+    {
+      id: 0, rank: 2, name: "Courtyard by Marriott St. John's", loc: "Buchanan St, Downtown",
+      score: 78, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Well Maintained"],
+      tags: ["cardio","cable","pool"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Weight Machines"},{hi:false,t:"Pool"},{hi:false,t:"Free Weights"}]
+    },
+    {
+      id: 0, rank: 3, name: "Capital Hotel St. John's", loc: "Portugal Cove Rd, Pippy Park",
+      score: 74, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Airport Convenient"],
+      tags: ["cardio","cable","functional"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Cables"},{hi:false,t:"Free Weights"}]
+    },
+    {
+      id: 0, rank: 4, name: "Delta Hotels St. John's Conference Centre", loc: "New Gower St, Downtown",
+      score: 71, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Convention Centre"],
+      tags: ["cardio","cable","pool"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Weight Machines"},{hi:false,t:"Pool"}]
+    },
+    {
+      id: 0, rank: 5, name: "Fairfield by Marriott St. John's", loc: "Stavanger Dr, East End",
+      score: 72, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Well Equipped","Good Value"],
+      tags: ["cardio","cable","functional"],
+      pills: [{hi:true,t:"Well Equipped"},{hi:false,t:"Treadmills"},{hi:false,t:"Free Weights"},{hi:false,t:"Cables"}]
+    },
+    {
+      id: 0, rank: 6, name: "Hampton Inn & Suites St. John's Airport", loc: "Airport Rd, Airport",
+      score: 70, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Airport Location"],
+      tags: ["cardio","pool","functional"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Free Weights"},{hi:false,t:"Pool"}]
+    },
+    {
+      id: 0, rank: 7, name: "Sheraton Hotel Newfoundland", loc: "Cavendish Square, Downtown",
+      score: 42, badge: null, badges: [],
+      highlights: [],
+      tags: ["cardio"],
+      pills: [{hi:false,t:"3 Pieces of Equipment"},{hi:false,t:"Incomplete Weights"}]
+    },
+  ],
+  'Winnipeg': [
+    {
+      id: 0, rank: 1, name: "Fairmont Winnipeg", loc: "Broadway Ave, Downtown",
+      score: 82, badge: 'elite', badges: [{t:'elite',l:'⭑ Elite'}],
+      highlights: ["Heated Pool","Central Location"],
+      tags: ["cardio","cable","pool","sauna","recovery"],
+      pills: [{hi:true,t:"Heated Pool"},{hi:false,t:"Treadmills"},{hi:false,t:"Free Weights"},{hi:false,t:"Sauna"}]
+    },
+    {
+      id: 0, rank: 2, name: "Hilton Winnipeg Airport Suites", loc: "Wellington Ave, Airport",
+      score: 80, badge: 'elite', badges: [{t:'elite',l:'⭑ Elite'},{t:'verified',l:'✓ Verified'}],
+      highlights: ["Well Equipped","Spacious"],
+      tags: ["cardio","cable","functional","recovery"],
+      pills: [{hi:true,t:"Well Equipped"},{hi:false,t:"Treadmills"},{hi:false,t:"Free Weights"},{hi:false,t:"Cables"}]
+    },
+    {
+      id: 0, rank: 3, name: "Alt Hotel Winnipeg", loc: "Waterfront Dr, The Forks",
+      score: 76, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Forks Location"],
+      tags: ["cardio","cable","functional"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Elliptical"},{hi:false,t:"Free Weights"},{hi:false,t:"Multistation"}]
+    },
+    {
+      id: 0, rank: 4, name: "Delta Hotels Winnipeg", loc: "Portage Ave, Downtown",
+      score: 65, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Convention Centre Connected","Pool"],
+      tags: ["cardio","pool"],
+      pills: [{hi:false,t:"Indoor Pool"},{hi:false,t:"Outdoor Pool"},{hi:false,t:"Treadmills"},{hi:false,t:"Basic Weights"}]
+    },
+    {
+      id: 0, rank: 5, name: "Mere Hotel", loc: "Lombard Ave, Exchange District",
+      score: 70, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Boutique Hotel","Fitness Classes"],
+      tags: ["cardio","functional"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Stationary Bike"},{hi:false,t:"Free Weights"},{hi:false,t:"Fitness Classes"}]
+    },
+    {
+      id: 0, rank: 6, name: "Fort Garry Hotel", loc: "Broadway, Downtown",
+      score: 62, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Historic Landmark","Pool"],
+      tags: ["cardio","pool"],
+      pills: [{hi:false,t:"Pool"},{hi:false,t:"Cardio Machines"},{hi:false,t:"Free Weights"}]
+    },
+    {
+      id: 0, rank: 7, name: "Radisson Hotel Downtown", loc: "St Mary Ave, Downtown",
+      score: 68, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Downtown Location"],
+      tags: ["cardio","cable","pool"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Weight Machines"},{hi:false,t:"Pool"}]
+    },
+    {
+      id: 0, rank: 8, name: "DoubleTree by Hilton Winnipeg", loc: "St Matthews Ave, Polo Park",
+      score: 72, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["24hrs"],
+      tags: ["cardio","cable","pool","sauna"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Cables"},{hi:false,t:"Pool"},{hi:false,t:"Sauna"}]
+    },
+    {
+      id: 0, rank: 9, name: "Hyatt Place Winnipeg", loc: "York Ave, Downtown",
+      score: 74, badge: 'new', badges: [{t:'new',l:'◆ New'}],
+      highlights: ["Modern Equipment"],
+      tags: ["cardio","cable","functional"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Cables"},{hi:false,t:"Free Weights"},{hi:false,t:"Kettlebells"}]
+    },
+    {
+      id: 0, rank: 10, name: "Holiday Inn Express Winnipeg Airport", loc: "Ellice Ave, Polo Park",
+      score: 60, badge: null, badges: [],
+      highlights: ["Pool"],
+      tags: ["cardio","pool"],
+      pills: [{hi:false,t:"Indoor Pool"},{hi:false,t:"Treadmills"},{hi:false,t:"Basic Weights"}]
+    },
+  ],
+  'Toronto': [
+    {
+      id: 0, rank: 1, name: "Shangri-La Toronto", loc: "University Ave, Financial District",
+      score: 94, badge: 'elite', badges: [{t:'elite',l:'⭑ Elite'},{t:'verified',l:'✓ Verified'}],
+      highlights: ["Infrared Sauna", "Yoga Studio"],
+      tags: ["barbell","cable","sauna","recovery","cardio","pool","functional","yoga"],
+      pills: [{hi:true,t:"Infrared Sauna"},{hi:true,t:"Yoga Studio"},{hi:false,t:"Barbells"},{hi:false,t:"Cables"},{hi:false,t:"Pool"},{hi:false,t:"Concept2 Rower"}]
+    },
+    {
+      id: 0, rank: 2, name: "Four Seasons Toronto", loc: "Yorkville Ave, Yorkville",
+      score: 91, badge: 'elite', badges: [{t:'elite',l:'⭑ Elite'}],
+      highlights: ["3,500 sq ft", "24hrs"],
+      tags: ["barbell","cable","cardio","recovery","pool","functional","sauna"],
+      pills: [{hi:true,t:"3,500 sq ft"},{hi:false,t:"Barbells"},{hi:false,t:"Cables"},{hi:false,t:"TRX"},{hi:false,t:"Pool"},{hi:false,t:"Smith Machine"}]
+    },
+    {
+      id: 0, rank: 3, name: "Ritz-Carlton Toronto", loc: "Wellington St W, Financial District",
+      score: 88, badge: 'elite', badges: [{t:'elite',l:'⭑ Elite'}],
+      highlights: ["Peloton", "Concept2 Rower"],
+      tags: ["cable","cardio","recovery","pool","sauna","peloton"],
+      pills: [{hi:true,t:"Peloton"},{hi:true,t:"Concept2 Rower"},{hi:false,t:"Smith Machine"},{hi:false,t:"Cables"},{hi:false,t:"Pool"}]
+    },
+    {
+      id: 0, rank: 4, name: "InterContinental Toronto Centre", loc: "Front St W, Entertainment District",
+      score: 84, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Peloton", "Steam Room"],
+      tags: ["cardio","cable","recovery","pool","sauna","peloton"],
+      pills: [{hi:true,t:"Peloton"},{hi:false,t:"Steam Room"},{hi:false,t:"Pool"},{hi:false,t:"Jacuzzi"},{hi:false,t:"Treadmills"}]
+    },
+    {
+      id: 0, rank: 5, name: "Park Hyatt Toronto", loc: "Avenue Rd, Yorkville",
+      score: 82, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Rooftop Terrace"],
+      tags: ["cardio","cable","recovery","sauna","pool"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Cables"},{hi:false,t:"Free Weights"},{hi:false,t:"Sauna"}]
+    },
+    {
+      id: 0, rank: 6, name: "Westin Harbour Castle", loc: "Harbour Square, Waterfront",
+      score: 78, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Harbour Views"],
+      tags: ["cardio","cable","pool","sauna"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Ellipticals"},{hi:false,t:"Pool"},{hi:false,t:"Sauna"}]
+    },
+    {
+      id: 0, rank: 7, name: "1 Hotel Toronto", loc: "King St W, Entertainment District",
+      score: 80, badge: 'new', badges: [{t:'new',l:'◆ New'}],
+      highlights: ["Eco Luxury","Barbells"],
+      tags: ["barbell","cable","cardio","recovery","sauna","yoga","functional","peloton"],
+      pills: [{hi:true,t:"Barbells"},{hi:false,t:"Peloton"},{hi:false,t:"Stairmaster"},{hi:false,t:"Yoga"},{hi:false,t:"Sauna"}]
+    },
+    {
+      id: 0, rank: 8, name: "Hotel X Toronto", loc: "Princes Blvd, Exhibition Place",
+      score: 97, badge: 'elite', badges: [{t:'elite',l:'⭑ Elite'},{t:'verified',l:'✓ Verified'}],
+      highlights: ["6,500 sq ft","Olympic Lifting"],
+      tags: ["barbell","cable","cardio","functional","recovery","pool"],
+      pills: [{hi:true,t:"6,500 sq ft"},{hi:true,t:"Barbells"},{hi:false,t:"Kettlebells"},{hi:false,t:"TRX"},{hi:false,t:"Pull-up Bars"},{hi:false,t:"Rings"}]
+    },
+    {
+      id: 0, rank: 9, name: "Omni King Edward Hotel", loc: "King St E, Old Town",
+      score: 83, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["24hrs"],
+      tags: ["barbell","cable","cardio","sauna"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Smith Machine"},{hi:false,t:"Cables"},{hi:false,t:"Rowing Machine"},{hi:false,t:"Sauna"}]
+    },
+    {
+      id: 0, rank: 10, name: "St. Regis Toronto", loc: "Bay St, Financial District",
+      score: 86, badge: 'elite', badges: [{t:'elite',l:'⭑ Elite'}],
+      highlights: ["Full Spa","Pool"],
+      tags: ["cardio","cable","recovery","pool","sauna"],
+      pills: [{hi:true,t:"Full Spa"},{hi:false,t:"Treadmills"},{hi:false,t:"Cables"},{hi:false,t:"Pool"},{hi:false,t:"Sauna"}]
+    },
+    {
+      id: 0, rank: 11, name: "Kimpton Saint George", loc: "Bloor St W, Annex",
+      score: 79, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["24hrs"],
+      tags: ["cable","cardio","functional"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Cables"},{hi:false,t:"Kettlebells"},{hi:false,t:"Medicine Balls"}]
+    },
+    {
+      id: 0, rank: 12, name: "Westin Toronto Airport", loc: "Dixon Rd, Etobicoke",
+      score: 80, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Peloton","24hrs"],
+      tags: ["cable","cardio","functional","peloton"],
+      pills: [{hi:true,t:"Peloton"},{hi:false,t:"Cables"},{hi:false,t:"Kettlebells"},{hi:false,t:"TRX"}]
+    },
+    {
+      id: 0, rank: 13, name: "Sheraton Gateway Toronto Airport", loc: "Terminal 3, Pearson Airport",
+      score: 72, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["In-Airport Access"],
+      tags: ["cardio","cable"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Ellipticals"},{hi:false,t:"Dumbbells"},{hi:false,t:"Medicine Balls"}]
+    },
+    {
+      id: 0, rank: 14, name: "Chelsea Hotel Toronto", loc: "Gerrard St W, Downtown",
+      score: 76, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Deck 27","City Views"],
+      tags: ["cardio","cable","pool"],
+      pills: [{hi:true,t:"Deck 27 Views"},{hi:false,t:"Treadmills"},{hi:false,t:"Weight Machines"},{hi:false,t:"Pool"}]
+    },
+    {
+      id: 0, rank: 15, name: "Fairmont Royal York", loc: "Front St W, Financial District",
+      score: 74, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Historic Landmark"],
+      tags: ["cardio","cable","pool","sauna"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Ellipticals"},{hi:false,t:"Pool"},{hi:false,t:"Sauna"}]
+    },
+    {
+      id: 0, rank: 16, name: "Marriott Eaton Centre", loc: "Dundas St W, Downtown",
+      score: 77, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Mall Connected"],
+      tags: ["cardio","cable","pool","sauna"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Cables"},{hi:false,t:"Pool"},{hi:false,t:"Hot Tub"}]
+    },
+    {
+      id: 0, rank: 17, name: "Hilton Toronto", loc: "Richmond St W, Entertainment District",
+      score: 75, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Indoor Pool"],
+      tags: ["cardio","cable","pool","sauna"],
+      pills: [{hi:false,t:"Indoor Pool"},{hi:false,t:"Treadmills"},{hi:false,t:"Weight Machines"},{hi:false,t:"Sauna"}]
+    },
+  ],
+  'New York': [
+    {
+      id: 0, rank: 1, name: "Four Seasons Midtown", loc: "57th St, Midtown Manhattan",
+      score: 96, badge: 'elite', badges: [{t:'elite',l:'⭑ Elite'},{t:'verified',l:'✓ Verified'}],
+      highlights: ["Olympic Platform","Cold Plunge"],
+      tags: ["barbell","cable","sauna","recovery","cardio","pool","peloton","olympic platform","cold plunge","functional"],
+      pills: [{hi:true,t:"Olympic Platform"},{hi:true,t:"Cold Plunge"},{hi:false,t:"Barbells"},{hi:false,t:"Cables"},{hi:false,t:"Peloton"},{hi:false,t:"Sauna"}]
+    },
+    {
+      id: 5, rank: 2, name: "1 Hotel Central Park", loc: "Central Park South",
+      score: 91, badge: 'elite', badges: [{t:'elite',l:'⭑ Elite'}],
+      highlights: ["Rooftop Track","Yoga Studio"],
+      tags: ["barbell","cable","cardio","recovery","yoga","steam room","functional"],
+      pills: [{hi:true,t:"Rooftop Track"},{hi:false,t:"Barbells"},{hi:false,t:"Cables"},{hi:false,t:"Yoga Studio"},{hi:false,t:"Steam Room"}]
+    },
+    {
+      id: 6, rank: 3, name: "Equinox Hotel Hudson Yards", loc: "Hudson Yards",
+      score: 88, badge: 'elite', badges: [{t:'elite',l:'⭑ Elite'},{t:'new',l:'◆ New'}],
+      highlights: ["Full Equinox Access","Olympic Platform"],
+      tags: ["barbell","cable","sauna","pool","recovery","cardio","olympic platform","cold plunge","functional"],
+      pills: [{hi:true,t:"Full Equinox Access"},{hi:false,t:"Pool"},{hi:false,t:"Sauna"},{hi:false,t:"Barbells"},{hi:false,t:"Cables"}]
+    },
+    {
+      id: 0, rank: 4, name: "The Beekman", loc: "Fulton St, Lower Manhattan",
+      score: 82, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: [],
+      tags: ["cable","cardio","barbell","functional"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Free Weights"},{hi:false,t:"Cable Machine"},{hi:false,t:"Bikes"}]
+    },
+    {
+      id: 0, rank: 5, name: "Baccarat Hotel", loc: "W 53rd St, Midtown",
+      score: 79, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: [],
+      tags: ["pool","cardio","recovery"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Ellipticals"},{hi:false,t:"Free Weights"},{hi:false,t:"Pool"}]
+    },
+    {
+      id: 0, rank: 6, name: "The Peninsula New York", loc: "5th Ave & 55th St",
+      score: 75, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: [],
+      tags: ["pool","cardio","sauna","recovery","steam room"],
+      pills: [{hi:false,t:"Lap Pool"},{hi:false,t:"Sauna"},{hi:false,t:"Treadmills"},{hi:false,t:"Steam Room"}]
+    },
+    {
+      id: 0, rank: 7, name: "The Standard High Line", loc: "Washington St, Meatpacking",
+      score: 68, badge: null, badges: [],
+      highlights: [],
+      tags: ["cardio","pool"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Bikes"},{hi:false,t:"Pool"}]
+    }
+  ],
+  'London': [
+    {
+      id: 4, rank: 1, name: "The Londoner", loc: "Leicester Square",
+      score: 84, badge: 'new', badges: [{t:'new',l:'◆ New'}],
+      highlights: ["Yoga Room"],
+      tags: ["cardio","cable","recovery","yoga","sauna"],
+      pills: [{hi:true,t:"Yoga Room"},{hi:false,t:"Treadmills"},{hi:false,t:"Cables"},{hi:false,t:"Sauna"}]
+    },
+    {
+      id: 0, rank: 2, name: "The Savoy", loc: "Strand, City of Westminster",
+      score: 80, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: [],
+      tags: ["cardio","pool","sauna","recovery"],
+      pills: [{hi:false,t:"Pool"},{hi:false,t:"Treadmills"},{hi:false,t:"Sauna"},{hi:false,t:"Free Weights"}]
+    },
+    {
+      id: 0, rank: 3, name: "Claridge's", loc: "Brook Street, Mayfair",
+      score: 72, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: [],
+      tags: ["cardio","recovery","pool"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Bikes"},{hi:false,t:"Pool"}]
+    }
+  ],
+  'Tokyo': [
+    {
+      id: 1, rank: 1, name: "Aman Tokyo", loc: "Otemachi Tower, Chiyoda-ku",
+      score: 93, badge: 'elite', badges: [{t:'elite',l:'⭑ Elite'}],
+      highlights: ["Pilates Reformer","Onsen"],
+      tags: ["cardio","recovery","yoga","functional","sauna","pool"],
+      pills: [{hi:true,t:"Pilates Reformer"},{hi:true,t:"Onsen"},{hi:false,t:"Cardio"},{hi:false,t:"Yoga Studio"},{hi:false,t:"Sauna"}]
+    },
+    {
+      id: 0, rank: 2, name: "Park Hyatt Tokyo", loc: "Shinjuku, Tokyo",
+      score: 85, badge: 'elite', badges: [{t:'elite',l:'⭑ Elite'}],
+      highlights: ["Infinity Pool"],
+      tags: ["pool","cardio","sauna","recovery","cable","barbell"],
+      pills: [{hi:true,t:"Infinity Pool"},{hi:false,t:"Barbells"},{hi:false,t:"Cables"},{hi:false,t:"Sauna"}]
+    }
+  ]
+};
+
+// Filter tags mapped to chip labels
+const filterMap = {
+  'All':      null,
+  'Barbell':  'barbell',
+  'Cable':    'cable',
+  'Sauna':    'sauna',
+  'Pool':     'pool',
+  'Cardio':   'cardio',
+  'Recovery': 'recovery'
+};
+
+let activeFilters = new Set();
+
+
+// ── PERSONALISED SCORING ENGINE ──
+
+// Weight multipliers per training style
+// Each category: [equipVariety, equipCondition, space, cleanliness, access, recovery]
+const styleWeights = {
+  strength:  [1.5, 1.3, 1.2, 0.8, 1.0, 0.8],  // barbells/space matter most
+  cardio:    [0.8, 1.2, 1.0, 1.0, 1.3, 0.7],  // cardio machines and hours
+  crossfit:  [1.4, 1.3, 1.3, 0.9, 1.1, 0.8],  // functional + space
+  yoga:      [0.7, 1.0, 1.1, 1.2, 0.9, 1.8],  // recovery and cleanliness
+  general:   [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],  // balanced
+};
+
+// Commitment multiplier — serious athletes penalise missing equipment more
+const commitmentMult = { casual: 0.85, committed: 1.0, serious: 1.1 };
+
+// Tag relevance per style — which tags boost the score
+const styleTagBoost = {
+  strength:  ['barbell','cable','functional','olympic platform'],
+  cardio:    ['cardio','peloton','pool'],
+  crossfit:  ['barbell','functional','cable','cardio'],
+  yoga:      ['yoga','recovery','sauna','pool'],
+  general:   [],
+};
+
+// Base category scores — estimated from overall score and tag presence
+function estimateCategoryScores(g) {
+  const s = g.score;
+  const tags = g.tags || [];
+  // Rough estimation from overall score and tag signals
+  const hasBarbell = tags.includes('barbell');
+  const hasCable = tags.includes('cable');
+  const hasPool = tags.includes('pool');
+  const hasSauna = tags.includes('sauna') || tags.includes('recovery');
+  const hasFunctional = tags.includes('functional');
+  const hasCardio = tags.includes('cardio') || tags.includes('peloton');
+
+  // Equipment variety (0-20)
+  let eq = Math.round(s * 0.20);
+  if (!hasBarbell && !hasCable) eq = Math.min(eq, 12);
+  if (hasBarbell && hasCable && hasFunctional) eq = Math.min(20, eq + 2);
+
+  // Equipment condition (0-20) — assume proportional to score
+  let cond = Math.round(s * 0.20);
+
+  // Space (0-20)
+  let space = Math.round(s * 0.18);
+
+  // Cleanliness (0-15)
+  let clean = Math.round(s * 0.15);
+
+  // Access/hours (0-10)
+  let access = Math.round(s * 0.10);
+
+  // Recovery (0-15)
+  let rec = 0;
+  if (hasSauna) rec += 7;
+  if (hasPool) rec += 5;
+  if (tags.includes('cold plunge') || tags.includes('coldplunge')) rec += 3;
+  rec = Math.min(15, rec);
+
+  return [eq, cond, space, clean, access, rec];
+}
+
+function getPersonalisedScore(g) {
+  if (!userProfile.style || userProfile.style === 'general') {
+    return { score: g.score, isPersonalised: false, dealbreakersOk: true, missingDealbreakers: [] };
+  }
+
+  const weights = styleWeights[userProfile.style] || styleWeights.general;
+  const commitMult = commitmentMult[userProfile.level] || 1.0;
+  const cats = estimateCategoryScores(g);
+  const maxes = [20, 20, 20, 15, 10, 15];
+
+  // Calculate weighted score
+  let total = 0;
+  let maxTotal = 0;
+  for (let i = 0; i < cats.length; i++) {
+    total += cats[i] * weights[i];
+    maxTotal += maxes[i] * weights[i];
+  }
+
+  // Boost for style-relevant tags
+  const boostTags = styleTagBoost[userProfile.style] || [];
+  const tagBoost = boostTags.filter(t => (g.tags || []).includes(t)).length * 1.5;
+
+  let personalScore = Math.round((total / maxTotal) * 100 * commitMult + tagBoost);
+  personalScore = Math.max(0, Math.min(100, personalScore));
+
+  // Check dealbreakers
+  const missingDealbreakers = (userProfile.dealbreakers || []).filter(db => {
+    const tagMap = {
+      barbell: 'barbell', cable: 'cable', peloton: 'peloton',
+      pool: 'pool', sauna: 'sauna', coldplunge: 'cold plunge',
+      functional: 'functional', '24hr': 'cardio'
+    };
+    return !(g.tags || []).includes(tagMap[db] || db);
+  });
+
+  // Penalise missing dealbreakers for serious athletes
+  if (missingDealbreakers.length > 0 && userProfile.level === 'serious') {
+    personalScore = Math.max(0, personalScore - (missingDealbreakers.length * 8));
+  } else if (missingDealbreakers.length > 0 && userProfile.level === 'committed') {
+    personalScore = Math.max(0, personalScore - (missingDealbreakers.length * 4));
+  }
+
+  return {
+    score: personalScore,
+    isPersonalised: true,
+    dealbreakersOk: missingDealbreakers.length === 0,
+    missingDealbreakers
+  };
+}
+
+function getStyleLabel() {
+  const labels = {
+    strength: 'Strength', cardio: 'Cardio', crossfit: 'CrossFit',
+    yoga: 'Yoga', general: 'General'
+  };
+  return labels[userProfile.style] || '';
+}
+
+function renderResults(city) {
+  const list = document.getElementById('results-list');
+  const empty = document.getElementById('results-empty');
+  if (!cityGyms[city]) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    empty.innerHTML = '<div style="font-size:36px;margin-bottom:12px">&#128205;</div><div style="font-family:\'DM Mono\',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px">' + city + ' coming soon</div><div style="font-size:13px;color:var(--muted);font-weight:300;max-width:240px;margin:0 auto">Try Toronto, New York, London, Tokyo, Dubai, Sydney, Chicago, LA, Paris or Singapore</div>';
+    const meta = document.querySelector('.results-meta');
+    if (meta) meta.textContent = 'City not yet available';
+    return;
+  }
+  const data = cityGyms[city];
+
+  // filter
+  let filtered = data;
+  if (activeFilters.size > 0) {
+    filtered = data.filter(g =>
+      [...activeFilters].every(f => g.tags.includes(f))
+    );
+  }
+
+  // update count
+  const meta = document.querySelector('.results-meta');
+  // meta updated in render body
+
+  if (filtered.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  // Sort by personalised score if profile set
+  const scoredData = filtered.map(g => ({...g, pScore: getPersonalisedScore(g)}));
+  if (userProfile.style && userProfile.style !== 'general') {
+    scoredData.sort((a, b) => b.pScore.score - a.pScore.score);
+  }
+
+  // Update meta with personalisation label
+  if (meta) {
+    const styleLabel = getStyleLabel();
+    meta.textContent = scoredData.length + ' gym' + (scoredData.length !== 1 ? 's' : '') +
+      (styleLabel ? ' · Scored for ' + styleLabel : ' · Liftaway Score');
+  }
+
+  list.innerHTML = scoredData.map((g, i) => {
+    const ps = g.pScore;
+    const isTop = i < 3;
+    const badgeHtml = g.badges.map(b => `<span class="badge badge-${b.t}">${b.l}</span>`).join('');
+
+    // highlight matching filter pills + dealbreaker indicators
+    const highlightedPills = g.pills.map(p => {
+      const isMatch = [...activeFilters].some(f =>
+        p.t.toLowerCase().includes(f) || g.tags.includes(f)
+      );
+      const dbLabels = {barbell:'Barbell',cable:'Cable',peloton:'Peloton',pool:'Pool',sauna:'Sauna',coldplunge:'Cold Plunge',functional:'Functional','24hr':'24hr'};
+      const isDealbreakerMissing = ps.missingDealbreakers.some(db =>
+        p.t.toLowerCase().includes((dbLabels[db]||db).toLowerCase())
+      );
+      return `<span class="equip-pill ${p.hi ? 'hi' : ''} ${isMatch && activeFilters.size > 0 ? 'match' : ''}">${p.t}</span>`;
+    }).join('');
+
+    // Dealbreaker warning pills
+    const dbLabels = {barbell:'Barbell & Rack',cable:'Cable Machine',peloton:'Peloton',pool:'Pool',sauna:'Sauna',coldplunge:'Cold Plunge',functional:'Functional Rig','24hr':'24hr Access'};
+    const missingPills = ps.missingDealbreakers.map(db =>
+      `<span class="equip-pill" style="border-color:rgba(224,92,75,0.4);color:#e8856e;">⚠ No ${dbLabels[db]||db}</span>`
+    ).join('');
+
+    const scoreLabel = ps.isPersonalised ? getStyleLabel() + ' Score' : 'Score';
+    const scoreColor = ps.isPersonalised ? (ps.dealbreakersOk ? 'var(--gold)' : '#e8856e') : 'var(--gold)';
+
+    return `
+    <div class="result-card" onclick="goProfile(${g.id})" style="animation-delay:${i * 0.05}s">
+      <div class="card-top">
+        <div class="card-rank ${isTop ? 'top' : ''}">${i + 1}</div>
+        <div class="card-info">
+          <div class="card-name">${g.name}</div>
+          <div class="card-loc">${g.loc}</div>
+          <div class="card-badges">${badgeHtml}</div>
+        </div>
+        <div class="card-score-col">
+          <div class="card-score-num" style="color:${scoreColor}">${ps.score}</div>
+          <div class="card-score-lbl">${scoreLabel}</div>
+        </div>
+      </div>
+      <div class="card-equip">${highlightedPills}${missingPills}</div>
+      <div class="card-bottom">
+        <div class="card-actions">
+          <button class="card-save" onclick="event.stopPropagation();toggleSave(this)">🔖 Save</button>
+          <button class="card-book" onclick="event.stopPropagation();bookHotelByName(this)">&#128197; Book</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleFilter(el) {
+  const label = el.textContent.trim();
+  const tag = filterMap[label];
+
+  if (label === 'All') {
+    // clear all filters
+    activeFilters.clear();
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('on'));
+    el.classList.add('on');
+  } else {
+    // deselect All chip
+    document.querySelector('.filter-chip').classList.remove('on');
+
+    if (el.classList.contains('on')) {
+      el.classList.remove('on');
+      activeFilters.delete(tag);
+      // if nothing selected, reactivate All
+      if (activeFilters.size === 0) {
+        document.querySelector('.filter-chip').classList.add('on');
+      }
+    } else {
+      el.classList.add('on');
+      activeFilters.add(tag);
+    }
+  }
+  renderResults(currentCity);
+}
+
+function toggleSave(el) {
+  el.classList.toggle('saved');
+  el.textContent = el.classList.contains('saved') ? '★ Saved' : '🔖 Save';
+}
+
+function toggleProfileSave(el) {
+  el.classList.toggle('saved');
+  if (el.classList.contains('saved')) {
+    el.textContent = '★  Saved';
+    el.style.borderColor = 'var(--gold)';
+    el.style.color = 'var(--gold)';
+  } else {
+    el.textContent = '🔖  Save Gym';
+    el.style.borderColor = 'var(--border)';
+    el.style.color = 'var(--muted2)';
+  }
+}
+
+function showReviewForm() {
+  document.getElementById('review-form').style.display = 'block';
+  document.getElementById('review-form').scrollIntoView({behavior:'smooth', block:'start'});
+}
+function hideReviewForm() {
+  document.getElementById('review-form').style.display = 'none';
+}
+function showPhotoUpload() {
+  document.getElementById('photo-upload').style.display = 'block';
+  document.getElementById('photo-upload').scrollIntoView({behavior:'smooth', block:'start'});
+}
+function hidePhotoUpload() {
+  document.getElementById('photo-upload').style.display = 'none';
+}
+function selectFormChip(el, group) {
+  el.closest('.form-chips').querySelectorAll('.form-chip').forEach(c => {
+    if (c.dataset.group === group || !c.dataset.group) c.classList.remove('selected');
+  });
+  el.classList.add('selected');
+}
+function toggleFormChip(el) {
+  el.classList.toggle('selected');
+}
+function rateStar(el) {
+  const row = el.closest('.star-row');
+  const stars = [...row.querySelectorAll('.star')];
+  const idx = stars.indexOf(el);
+  stars.forEach((s, i) => s.classList.toggle('active', i <= idx));
+}
+function submitReview() {
+  const form = document.getElementById('review-form');
+  form.innerHTML = '<div style="text-align:center;padding:32px 0;"><div style=\'font-size:32px;margin-bottom:12px\'>✓</div><div style=\'font-family:DM Mono,monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--green)\'>Review Submitted</div><div style=\'font-size:12px;color:var(--muted);margin-top:8px;font-weight:300\'>Thanks for keeping the data fresh.</div></div>';
+  setTimeout(() => { form.style.display = 'none'; }, 2500);
+}
+
+
+// ── MAP VIEW ──
+const mapData = {
+  "St. John's": {
+    center: { x: 0.5, y: 0.5 },
+    gyms: [
+      { id:0, rank:1, name:"Alt Hotel St. John's", loc:"New Gower St", score:81, badge:'elite', px:0.48, py:0.46,
+        highlights:["Modern"], tags:["cardio","cable","functional"],
+        pills:[{hi:true,t:"Modern Equipment"},{hi:false,t:"Free Weights"}] },
+      { id:0, rank:2, name:"Courtyard Marriott", loc:"Buchanan St", score:78, badge:'verified', px:0.52, py:0.44,
+        highlights:[], tags:["cardio","cable","pool"],
+        pills:[{hi:false,t:"Pool"},{hi:false,t:"Treadmills"}] },
+      { id:0, rank:3, name:"Fairfield by Marriott", loc:"Stavanger Dr", score:72, badge:'verified', px:0.62, py:0.42,
+        highlights:[], tags:["cardio","cable"],
+        pills:[{hi:false,t:"Treadmills"},{hi:false,t:"Cables"}] },
+      { id:0, rank:4, name:"Delta Hotels St. John's", loc:"New Gower St", score:71, badge:'verified', px:0.46, py:0.48,
+        highlights:[], tags:["cardio","pool"],
+        pills:[{hi:false,t:"Pool"},{hi:false,t:"Treadmills"}] },
+      { id:0, rank:5, name:"Sheraton Newfoundland", loc:"Cavendish Square", score:42, badge:null, px:0.50, py:0.42,
+        highlights:[], tags:["cardio"],
+        pills:[{hi:false,t:"Very Limited"}] },
+    ]
+  },
+  'Winnipeg': {
+    center: { x: 0.5, y: 0.5 },
+    gyms: [
+      { id:0, rank:1, name:"Fairmont Winnipeg", loc:"Broadway Ave, Downtown", score:82, badge:'elite', px:0.50, py:0.46,
+        highlights:["Heated Pool"], tags:["cardio","pool","sauna","recovery"],
+        pills:[{hi:true,t:"Heated Pool"},{hi:false,t:"Treadmills"},{hi:false,t:"Sauna"}] },
+      { id:0, rank:2, name:"Hilton Airport Suites", loc:"Wellington Ave", score:80, badge:'elite', px:0.32, py:0.40,
+        highlights:["Well Equipped"], tags:["cardio","cable","functional"],
+        pills:[{hi:true,t:"Well Equipped"},{hi:false,t:"Free Weights"},{hi:false,t:"Cables"}] },
+      { id:0, rank:3, name:"Alt Hotel Winnipeg", loc:"The Forks", score:76, badge:'verified', px:0.52, py:0.52,
+        highlights:[], tags:["cardio","functional"],
+        pills:[{hi:false,t:"Treadmills"},{hi:false,t:"Free Weights"}] },
+      { id:0, rank:4, name:"DoubleTree Winnipeg", loc:"Polo Park", score:72, badge:'verified', px:0.38, py:0.44,
+        highlights:[], tags:["cardio","cable","pool"],
+        pills:[{hi:false,t:"Pool"},{hi:false,t:"Cables"}] },
+      { id:0, rank:5, name:"Hyatt Place Winnipeg", loc:"York Ave, Downtown", score:74, badge:'new', px:0.48, py:0.50,
+        highlights:["Modern"], tags:["cardio","cable","functional"],
+        pills:[{hi:false,t:"Kettlebells"},{hi:false,t:"Cables"}] },
+      { id:0, rank:6, name:"Delta Hotels Winnipeg", loc:"Portage Ave", score:65, badge:'verified', px:0.46, py:0.44,
+        highlights:[], tags:["cardio","pool"],
+        pills:[{hi:false,t:"Pool"},{hi:false,t:"Treadmills"}] },
+      { id:0, rank:7, name:"Mere Hotel", loc:"Exchange District", score:70, badge:'verified', px:0.54, py:0.44,
+        highlights:[], tags:["cardio","functional"],
+        pills:[{hi:false,t:"Treadmills"},{hi:false,t:"Free Weights"}] },
+    ]
+  },
+  'Toronto': {
+    center: { x: 0.5, y: 0.5 },
+    gyms: [
+      { id:0, rank:1, name:"Shangri-La Toronto", loc:"University Ave, Financial District", score:94, badge:'elite', px:0.48, py:0.44,
+        highlights:["Infrared Sauna","Yoga Studio"], tags:["barbell","cable","sauna","recovery","yoga"],
+        pills:[{hi:true,t:"Infrared Sauna"},{hi:true,t:"Yoga Studio"},{hi:false,t:"Barbells"},{hi:false,t:"Pool"}] },
+      { id:0, rank:2, name:"Four Seasons Toronto", loc:"Yorkville", score:91, badge:'elite', px:0.46, py:0.36,
+        highlights:["3,500 sq ft"], tags:["barbell","cable","cardio","pool","functional"],
+        pills:[{hi:true,t:"3,500 sq ft"},{hi:false,t:"Barbells"},{hi:false,t:"Cables"},{hi:false,t:"Pool"}] },
+      { id:0, rank:3, name:"Ritz-Carlton Toronto", loc:"Financial District", score:88, badge:'elite', px:0.50, py:0.47,
+        highlights:["Peloton","Concept2"], tags:["cable","cardio","pool","peloton"],
+        pills:[{hi:true,t:"Peloton"},{hi:false,t:"Concept2"},{hi:false,t:"Cables"},{hi:false,t:"Pool"}] },
+      { id:0, rank:4, name:"InterContinental Toronto", loc:"Entertainment District", score:84, badge:'verified', px:0.44, py:0.50,
+        highlights:["Steam Room"], tags:["cardio","cable","pool","sauna","peloton"],
+        pills:[{hi:false,t:"Peloton"},{hi:false,t:"Steam Room"},{hi:false,t:"Pool"}] },
+      { id:0, rank:5, name:"Park Hyatt Toronto", loc:"Yorkville", score:82, badge:'verified', px:0.47, py:0.35,
+        highlights:[], tags:["cardio","cable","sauna"],
+        pills:[{hi:false,t:"Treadmills"},{hi:false,t:"Cables"},{hi:false,t:"Sauna"}] },
+      { id:0, rank:6, name:"1 Hotel Toronto", loc:"King St W", score:80, badge:'new', px:0.42, py:0.53,
+        highlights:["Eco Luxury"], tags:["cardio","cable","yoga","sauna"],
+        pills:[{hi:false,t:"Treadmills"},{hi:false,t:"Yoga"},{hi:false,t:"Sauna"}] },
+      { id:0, rank:7, name:"Westin Harbour Castle", loc:"Waterfront", score:78, badge:'verified', px:0.52, py:0.62,
+        highlights:["Harbour Views"], tags:["cardio","pool","sauna"],
+        pills:[{hi:false,t:"Pool"},{hi:false,t:"Sauna"},{hi:false,t:"Treadmills"}] },
+    ]
+  },
+
+  'New York': {
+    center: { x: 0.5, y: 0.45 },
+    zoom: 1,
+    gyms: [
+      { id:0, rank:1, name:"Four Seasons Midtown", loc:"57th St, Midtown", score:96, badge:'elite', px:0.51, py:0.38,
+        highlights:["Olympic Platform","Cold Plunge"], tags:["barbell","cable","sauna","recovery","pool"],
+        pills:[{hi:true,t:"Olympic Platform"},{hi:true,t:"Cold Plunge"},{hi:false,t:"Barbells"},{hi:false,t:"Sauna"}] },
+      { id:5, rank:2, name:"1 Hotel Central Park", loc:"Central Park South", score:91, badge:'elite', px:0.46, py:0.32,
+        highlights:["Rooftop Track"], tags:["barbell","cable","recovery","yoga"],
+        pills:[{hi:true,t:"Rooftop Track"},{hi:false,t:"Barbells"},{hi:false,t:"Cables"}] },
+      { id:6, rank:3, name:"Equinox Hotel Hudson Yards", loc:"Hudson Yards", score:88, badge:'elite', px:0.38, py:0.47,
+        highlights:["Full Equinox Access"], tags:["barbell","cable","sauna","pool","recovery"],
+        pills:[{hi:true,t:"Full Equinox"},{hi:false,t:"Pool"},{hi:false,t:"Sauna"}] },
+      { id:0, rank:4, name:"The Beekman", loc:"Lower Manhattan", score:82, badge:'verified', px:0.52, py:0.68,
+        highlights:[], tags:["cable","cardio","barbell"],
+        pills:[{hi:false,t:"Treadmills"},{hi:false,t:"Free Weights"},{hi:false,t:"Cables"}] },
+      { id:0, rank:5, name:"Baccarat Hotel", loc:"W 53rd St, Midtown", score:79, badge:'verified', px:0.49, py:0.40,
+        highlights:[], tags:["pool","cardio"],
+        pills:[{hi:false,t:"Treadmills"},{hi:false,t:"Pool"}] },
+      { id:0, rank:6, name:"The Peninsula", loc:"5th Ave & 55th St", score:75, badge:'verified', px:0.53, py:0.36,
+        highlights:[], tags:["pool","cardio","sauna"],
+        pills:[{hi:false,t:"Lap Pool"},{hi:false,t:"Sauna"}] },
+      { id:0, rank:7, name:"The Standard High Line", loc:"Meatpacking District", score:68, badge:null, px:0.40, py:0.44,
+        highlights:[], tags:["cardio","pool"],
+        pills:[{hi:false,t:"Treadmills"},{hi:false,t:"Pool"}] },
+    ]
+  },
+  'London': {
+    center: { x: 0.5, y: 0.5 },
+    gyms: [
+      { id:4, rank:1, name:"The Londoner", loc:"Leicester Square", score:84, badge:'elite', px:0.50, py:0.47,
+        highlights:["Yoga Room"], tags:["cardio","cable","recovery","yoga","sauna"],
+        pills:[{hi:true,t:"Yoga Room"},{hi:false,t:"Cables"},{hi:false,t:"Sauna"}] },
+      { id:0, rank:2, name:"The Savoy", loc:"Strand", score:80, badge:'verified', px:0.54, py:0.45,
+        highlights:[], tags:["cardio","pool","sauna","recovery"],
+        pills:[{hi:false,t:"Pool"},{hi:false,t:"Sauna"},{hi:false,t:"Treadmills"}] },
+      { id:0, rank:3, name:"Claridge's", loc:"Mayfair", score:72, badge:'verified', px:0.44, py:0.42,
+        highlights:[], tags:["cardio","recovery","pool"],
+        pills:[{hi:false,t:"Treadmills"},{hi:false,t:"Pool"}] },
+    ]
+  },
+  'Tokyo': {
+    center: { x: 0.5, y: 0.5 },
+    gyms: [
+      { id:1, rank:1, name:"Aman Tokyo", loc:"Otemachi, Chiyoda-ku", score:93, badge:'elite', px:0.52, py:0.44,
+        highlights:["Pilates Reformer","Onsen"], tags:["cardio","recovery","yoga","sauna","pool"],
+        pills:[{hi:true,t:"Pilates Reformer"},{hi:true,t:"Onsen"},{hi:false,t:"Sauna"}] },
+      { id:0, rank:2, name:"Park Hyatt Tokyo", loc:"Shinjuku", score:85, badge:'elite', px:0.38, py:0.50,
+        highlights:["Infinity Pool"], tags:["pool","cardio","sauna","recovery","cable","barbell"],
+        pills:[{hi:true,t:"Infinity Pool"},{hi:false,t:"Barbells"},{hi:false,t:"Sauna"}] },
+    ]
+  }
+};
+
+let mapCity = 'New York';
+let mapActiveFilter = 'all';
+let selectedPin = null;
+let mapScale = 1;
+
+// Street-grid map drawing
+function drawMap(canvasEl, cityKey) {
+  const W = canvasEl.width = canvasEl.offsetWidth * window.devicePixelRatio;
+  const H = canvasEl.height = canvasEl.offsetHeight * window.devicePixelRatio;
+  const ctx = canvasEl.getContext('2d');
+  const s = window.devicePixelRatio;
+
+  // Background
+  ctx.fillStyle = '#0e1218';
+  ctx.fillRect(0, 0, W, H);
+
+  // Water body (Hudson/Thames/Tokyo Bay hint)
+  const grad = ctx.createLinearGradient(0, 0, W * 0.3, H);
+  grad.addColorStop(0, 'rgba(16,24,40,0.9)');
+  grad.addColorStop(1, 'transparent');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W * 0.28, H);
+
+  // Park areas
+  const parks = cityKey === 'New York'
+    ? [{x:0.36, y:0.18, w:0.14, h:0.28}]
+    : cityKey === 'London'
+    ? [{x:0.28, y:0.28, w:0.18, h:0.20},{x:0.55, y:0.55, w:0.14, h:0.16}]
+    : [{x:0.30, y:0.30, w:0.16, h:0.18}];
+
+  parks.forEach(p => {
+    ctx.fillStyle = 'rgba(30,48,36,0.6)';
+    ctx.beginPath();
+    ctx.roundRect(p.x * W, p.y * H, p.w * W, p.h * H, 4 * s);
+    ctx.fill();
+  });
+
+  // Grid streets
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1 * s;
+
+  if (cityKey === 'New York') {
+    // Vertical avenues
+    [0.30, 0.38, 0.43, 0.47, 0.51, 0.55, 0.60, 0.65, 0.70].forEach(x => {
+      ctx.beginPath(); ctx.moveTo(x * W, 0); ctx.lineTo(x * W, H); ctx.stroke();
+    });
+    // Horizontal streets
+    for (let i = 0; i < 22; i++) {
+      const y = (0.1 + i * 0.037) * H;
+      ctx.beginPath(); ctx.moveTo(0.28 * W, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+    // Broadway diagonal
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+    ctx.lineWidth = 1.5 * s;
+    ctx.beginPath(); ctx.moveTo(0.62 * W, 0); ctx.lineTo(0.38 * W, H); ctx.stroke();
+  } else if (cityKey === 'London') {
+    // Irregular London streets
+    const lStreets = [
+      [[0.2,0.3],[0.8,0.35]], [[0.2,0.45],[0.85,0.48]], [[0.2,0.58],[0.8,0.60]],
+      [[0.2,0.7],[0.75,0.72]], [[0.3,0.2],[0.32,0.8]], [[0.45,0.2],[0.47,0.8]],
+      [[0.58,0.25],[0.60,0.78]], [[0.72,0.3],[0.74,0.75]],
+      [[0.25,0.25],[0.75,0.55]], [[0.30,0.65],[0.72,0.40]]
+    ];
+    lStreets.forEach(([a,b]) => {
+      ctx.beginPath(); ctx.moveTo(a[0]*W, a[1]*H); ctx.lineTo(b[0]*W, b[1]*H); ctx.stroke();
+    });
+  } else {
+    // Tokyo grid
+    [0.28, 0.36, 0.44, 0.52, 0.60, 0.68, 0.76].forEach(x => {
+      ctx.beginPath(); ctx.moveTo(x*W, 0.15*H); ctx.lineTo(x*W, 0.85*H); ctx.stroke();
+    });
+    [0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80].forEach(y => {
+      ctx.beginPath(); ctx.moveTo(0.25*W, y*H); ctx.lineTo(0.80*W, y*H); ctx.stroke();
+    });
+  }
+
+  // Major roads (brighter)
+  ctx.strokeStyle = 'rgba(255,255,255,0.09)';
+  ctx.lineWidth = 2 * s;
+  if (cityKey === 'New York') {
+    // 5th Ave, 42nd St, 57th St
+    [[0.51,0,0.51,1],[0.28,0.56,1,0.56],[0.28,0.38,1,0.38]].forEach(([x1,y1,x2,y2]) => {
+      ctx.beginPath(); ctx.moveTo(x1*W,y1*H); ctx.lineTo(x2*W,y2*H); ctx.stroke();
+    });
+  }
+
+  // City label
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.font = `bold ${18*s}px 'Bebas Neue', sans-serif`;
+  ctx.letterSpacing = `${3*s}px`;
+  ctx.fillText(cityKey.toUpperCase(), 0.36 * W, 0.92 * H);
+}
+
+function renderPins() {
+  const wrap = document.getElementById('map-pins');
+  const canvas = document.getElementById('map-canvas');
+  if (!wrap || !canvas) return;
+
+  const W = canvas.offsetWidth;
+  const H = canvas.offsetHeight;
+  const city = mapData[mapCity];
+  if (!city) return;
+
+  wrap.innerHTML = '';
+
+  city.gyms.forEach((g, i) => {
+    // filter check
+    let visible = true;
+    if (mapActiveFilter === 'elite') visible = g.badge === 'elite';
+    else if (mapActiveFilter !== 'all') visible = g.tags.includes(mapActiveFilter);
+
+    const x = g.px * W;
+    const y = g.py * H;
+    const tier = g.badge === 'elite' ? 'elite' : 'verified';
+    const isSelected = selectedPin === i;
+    const dimmed = !visible && mapActiveFilter !== 'all';
+
+    const pin = document.createElement('div');
+    pin.className = 'map-pin' + (isSelected ? ' selected' : '');
+    pin.style.left = x + 'px';
+    pin.style.top = y + 'px';
+    pin.innerHTML = `
+      <div class="pin-bubble ${tier} ${dimmed ? 'dimmed' : ''}">${g.score}</div>
+      <div class="pin-tail ${tier}"></div>
+    `;
+    pin.onclick = () => selectPin(i);
+    wrap.appendChild(pin);
+  });
+}
+
+function selectPin(idx) {
+  selectedPin = idx;
+  renderPins();
+
+  const city = mapData[mapCity];
+  const g = city.gyms[idx];
+  const content = document.getElementById('sheet-content');
+  const pillHtml = g.pills.map(p => `<span class="sheet-pill ${p.hi?'hi':''}">${p.t}</span>`).join('');
+  const badgeLabel = g.badge === 'elite' ? '<span class="badge badge-elite" style="margin-left:8px">⭑ Elite</span>' : '';
+
+  content.innerHTML = `
+    <div class="sheet-card">
+      <div class="sheet-rank">${g.rank}</div>
+      <div class="sheet-info">
+        <div class="sheet-name">${g.name}${badgeLabel}</div>
+        <div class="sheet-loc">📍 ${g.loc}</div>
+        <div class="sheet-pills">${pillHtml}</div>
+      </div>
+      <div class="sheet-score">
+        <div class="sheet-score-num">${g.score}</div>
+        <div class="sheet-score-lbl">Score</div>
+      </div>
+    </div>
+    <button class="sheet-open-btn" onclick="goProfile(${g.id})">View Full Profile →</button>
+  `;
+}
+
+function mapSelectCity(city) {
+  mapCity = city;
+  selectedPin = null;
+  document.getElementById('sheet-content').innerHTML = '<div class="sheet-hint">Tap a pin to see gym details</div>';
+  initMap();
+}
+
+function mapFilter(el, filter) {
+  document.querySelectorAll('.map-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  mapActiveFilter = filter;
+  renderPins();
+}
+
+function mapZoom(dir) {
+  mapScale = Math.max(0.8, Math.min(2, mapScale + dir * 0.2));
+  const canvas = document.getElementById('map-canvas');
+  if (canvas) {
+    canvas.style.transform = `scale(${mapScale})`;
+    canvas.style.transformOrigin = 'center center';
+  }
+}
+
+function initMap() {
+  const canvas = document.getElementById('map-canvas');
+  if (!canvas) return;
+  // wait for layout
+  requestAnimationFrame(() => {
+    drawMap(canvas, mapCity);
+    renderPins();
+  });
+}
+
+// Handle resize
+window.addEventListener('resize', () => {
+  if (document.getElementById('screen-explore').classList.contains('active')) {
+    initMap();
+  }
+});
+
+
+// ── SPLASH ──
+function enterApp() {
+  const splash = document.getElementById('splash');
+  const app = document.getElementById('app');
+  splash.classList.add('hiding');
+  app.style.opacity = '1';
+  setTimeout(() => { splash.style.display = 'none'; }, 520);
+}
+
+// ── NEARBY GYMS DATA ──
+const nearbyData = {
+  "St. John's": [
+    {name:"GoodLife Fitness Avalon Mall", type:"commercial", icon:"&#127947;", distance:"0.8 km", dropin:"C$20", hours:"5am-11pm", features:["Full weights","Cardio","Classes"]},
+    {name:"CrossFit St. John's", type:"crossfit", icon:"&#9889;", distance:"1.5 km", dropin:"C$25", hours:"6am-8pm", features:["WOD","Open gym","Coaching"]},
+    {name:"Moksha Yoga St. John's", type:"yoga", icon:"&#129338;", distance:"1.0 km", dropin:"C$20", hours:"7am-9pm", features:["Hot yoga","Vinyasa"]},
+    {name:"Snap Fitness Downtown", type:"commercial", icon:"&#127947;", distance:"0.5 km", dropin:"C$15", hours:"24hrs", features:["24hr access","Free weights","Cardio"]},
+  ],
+  'Winnipeg': [
+    {name:"Fit4Less Downtown", type:"commercial", icon:"&#127947;", distance:"0.4 km", dropin:"C$12", hours:"5am-11pm", features:["Full weights","Cardio","24hr access"]},
+    {name:"CrossFit Winnipeg", type:"crossfit", icon:"&#9889;", distance:"1.2 km", dropin:"C$25", hours:"6am-8pm", features:["WOD","Open gym","Coaching"]},
+    {name:"Moksha Yoga Winnipeg", type:"yoga", icon:"&#129338;", distance:"0.8 km", dropin:"C$22", hours:"6am-9pm", features:["Hot yoga","Vinyasa","Yin"]},
+    {name:"GoodLife Fitness Polo Park", type:"commercial", icon:"&#127947;", distance:"2.1 km", dropin:"C$20", hours:"5am-11pm", features:["Full weights","Pool","Classes"]},
+    {name:"CrossFit 204", type:"crossfit", icon:"&#9889;", distance:"1.8 km", dropin:"C$22", hours:"5:30am-8pm", features:["WOD","Barbell club","Open gym"]},
+    {name:"Studio Lagree Winnipeg", type:"pilates", icon:"&#127992;", distance:"1.0 km", dropin:"C$35", hours:"6am-7pm", features:["Megaformer","Small group"]},
+  ],
+  'Toronto': [
+    {name:"Equinox King West", type:"commercial", icon:"&#127947;", distance:"0.4 km", dropin:"C$35", hours:"5am-11pm", features:["Full weights","Pool","Sauna","Classes"]},
+    {name:"CrossFit Toronto", type:"crossfit", icon:"&#9889;", distance:"0.8 km", dropin:"C$30", hours:"6am-9pm", features:["WOD","Open gym","Olympic lifting"]},
+    {name:"Moksha Yoga Downtown", type:"yoga", icon:"&#129338;", distance:"0.5 km", dropin:"C$25", hours:"6am-9pm", features:["Hot yoga","Vinyasa","Yin"]},
+    {name:"Totum Life Science", type:"commercial", icon:"&#127947;", distance:"1.1 km", dropin:"C$28", hours:"6am-9pm", features:["Physio","Full gym","Personal training"]},
+    {name:"CrossFit 6ix", type:"crossfit", icon:"&#9889;", distance:"1.4 km", dropin:"C$28", hours:"5:30am-8pm", features:["WOD","Barbell club","Open gym"]},
+    {name:"Studio Lagree Toronto", type:"pilates", icon:"&#127992;", distance:"0.7 km", dropin:"C$38", hours:"6am-8pm", features:["Megaformer","Small group"]},
+    {name:"GoodLife King West", type:"commercial", icon:"&#127947;", distance:"0.3 km", dropin:"C$20", hours:"5am-11pm", features:["Full weights","Cardio","Classes"]},
+  ],
+
+  'New York': [
+    {name:"Equinox Hudson Yards",type:"commercial",icon:"&#127947;",distance:"0.3 mi",dropin:"$45",hours:"5am-11pm",features:["Olympic lifting","Pool","Sauna"]},
+    {name:"CrossFit Hell's Kitchen",type:"crossfit",icon:"&#9889;",distance:"0.5 mi",dropin:"$35",hours:"6am-9pm",features:["WOD classes","Open gym"]},
+    {name:"Pure Yoga West 57th",type:"yoga",icon:"&#129338;",distance:"0.2 mi",dropin:"$42",hours:"6am-9pm",features:["Hot yoga","Vinyasa"]},
+    {name:"The Fhitting Room",type:"crossfit",icon:"&#9889;",distance:"0.8 mi",dropin:"$40",hours:"5:30am-8pm",features:["HIIT","Small group","TRX"]},
+    {name:"Club Pilates Midtown",type:"pilates",icon:"&#127992;",distance:"0.6 mi",dropin:"$30",hours:"7am-8pm",features:["Reformer","Mat classes"]},
+    {name:"Life Time Midtown",type:"commercial",icon:"&#127947;",distance:"1.1 mi",dropin:"$50",hours:"5am-11pm",features:["Full weights","Pool","Basketball"]},
+    {name:"Y7 Studio Chelsea",type:"yoga",icon:"&#129338;",distance:"1.2 mi",dropin:"$28",hours:"7am-9pm",features:["Hip-hop yoga","Heated"]},
+  ],
+  'London': [
+    {name:"Third Space Soho",type:"commercial",icon:"&#127947;",distance:"0.4 mi",dropin:"£25",hours:"6am-10pm",features:["Full weights","Pool","Classes"]},
+    {name:"CrossFit Central London",type:"crossfit",icon:"&#9889;",distance:"0.7 mi",dropin:"£20",hours:"6am-8pm",features:["WOD","Open gym"]},
+    {name:"Triyoga Covent Garden",type:"yoga",icon:"&#129338;",distance:"0.3 mi",dropin:"£22",hours:"7am-9pm",features:["Ashtanga","Hot yoga"]},
+    {name:"Gymbox Holborn",type:"commercial",icon:"&#127947;",distance:"0.9 mi",dropin:"£20",hours:"6am-10pm",features:["Boxing","Full weights"]},
+  ],
+  'Tokyo': [
+    {name:"Gold's Gym Shinjuku",type:"commercial",icon:"&#127947;",distance:"0.5 km",dropin:"¥2,200",hours:"5am-11pm",features:["Full weights","Cardio"]},
+    {name:"CrossFit Roppongi",type:"crossfit",icon:"&#9889;",distance:"1.2 km",dropin:"¥3,000",hours:"6am-9pm",features:["WOD","English coaching"]},
+    {name:"Yoga Works Minami-Aoyama",type:"yoga",icon:"&#129338;",distance:"0.8 km",dropin:"¥2,500",hours:"7am-9pm",features:["Vinyasa","Meditation"]},
+  ],
+  'Dubai': [
+    {name:"Fitness First Dubai Mall",type:"commercial",icon:"&#127947;",distance:"0.8 km",dropin:"AED 100",hours:"6am-11pm",features:["Full weights","Classes"]},
+    {name:"CrossFit Dubai",type:"crossfit",icon:"&#9889;",distance:"1.5 km",dropin:"AED 80",hours:"5:30am-9pm",features:["WOD","Coaching"]},
+    {name:"The Hundred Wellness",type:"pilates",icon:"&#127992;",distance:"0.6 km",dropin:"AED 120",hours:"6am-9pm",features:["Reformer","Private sessions"]},
+  ],
+  'Chicago': [
+    { id:0, rank:1, name:"Four Seasons Chicago", loc:"Delaware Pl, Gold Coast", score:92, badge:'elite', badges:[{t:'elite',l:'⭑ Elite'}], highlights:["Indoor Pool","Full Weights"], tags:["barbell","cable","sauna","pool","recovery","cardio"], pills:[{hi:true,t:"Indoor Pool"},{hi:true,t:"Full Weights"},{hi:false,t:"Sauna"},{hi:false,t:"Cables"}] },
+    { id:0, rank:2, name:"Waldorf Astoria Chicago", loc:"Walton St, Gold Coast", score:86, badge:'elite', badges:[{t:'elite',l:'⭑ Elite'}], highlights:["Spa Access"], tags:["cardio","recovery","sauna","pool"], pills:[{hi:true,t:"Spa Access"},{hi:false,t:"Treadmills"},{hi:false,t:"Sauna"},{hi:false,t:"Pool"}] },
+    { id:0, rank:3, name:"The Langham Chicago", loc:"Wacker Dr, Loop", score:83, badge:'verified', badges:[{t:'verified',l:'✓ Verified'}], highlights:[], tags:["cardio","cable","pool","sauna"], pills:[{hi:false,t:"Pool"},{hi:false,t:"Cables"},{hi:false,t:"Sauna"}] },
+    { id:0, rank:4, name:"Virgin Hotels Chicago", loc:"Wabash Ave, Loop", score:76, badge:'verified', badges:[{t:'verified',l:'✓ Verified'}], highlights:[], tags:["cardio","functional"], pills:[{hi:false,t:"Treadmills"},{hi:false,t:"Free Weights"}] },
+  ],
+  'Los Angeles': [
+    { id:0, rank:1, name:"Rosewood Miramar Beach", loc:"Channel Dr, Santa Barbara", score:91, badge:'elite', badges:[{t:'elite',l:'⭑ Elite'}], highlights:["Beachfront Pool","Full Weights"], tags:["barbell","cable","cardio","pool","sauna","recovery","functional"], pills:[{hi:true,t:"Beachfront Pool"},{hi:true,t:"Full Weights"},{hi:false,t:"Barbells"},{hi:false,t:"Sauna"}] },
+    { id:0, rank:2, name:"Hotel Bel-Air", loc:"Stone Canyon Rd, Bel Air", score:85, badge:'elite', badges:[{t:'elite',l:'⭑ Elite'}], highlights:["Garden Pool"], tags:["pool","cardio","sauna","recovery","yoga"], pills:[{hi:true,t:"Garden Pool"},{hi:false,t:"Yoga"},{hi:false,t:"Sauna"}] },
+    { id:0, rank:3, name:"The West Hollywood EDITION", loc:"Sunset Blvd, West Hollywood", score:82, badge:'verified', badges:[{t:'verified',l:'✓ Verified'}], highlights:["Rooftop Pool"], tags:["pool","cardio","cable","functional"], pills:[{hi:true,t:"Rooftop Pool"},{hi:false,t:"Treadmills"},{hi:false,t:"Cables"}] },
+  ],
+  'Paris': [
+    { id:0, rank:1, name:"Four Seasons George V", loc:"Avenue George V, 8th arr.", score:88, badge:'elite', badges:[{t:'elite',l:'⭑ Elite'}], highlights:["Pool","Steam Room"], tags:["pool","sauna","cardio","cable","barbell","recovery"], pills:[{hi:true,t:"Pool"},{hi:false,t:"Barbells"},{hi:false,t:"Cables"},{hi:false,t:"Steam Room"}] },
+    { id:0, rank:2, name:"Le Bristol Paris", loc:"Rue du Faubourg Saint-Honore", score:90, badge:'elite', badges:[{t:'elite',l:'⭑ Elite'}], highlights:["Heated Pool","Sauna"], tags:["pool","sauna","cardio","recovery","cable"], pills:[{hi:true,t:"Heated Pool"},{hi:true,t:"Sauna"},{hi:false,t:"Cables"}] },
+    { id:0, rank:3, name:"Hotel de Crillon", loc:"Place de la Concorde", score:84, badge:'elite', badges:[{t:'elite',l:'⭑ Elite'}], highlights:["Spa Access"], tags:["recovery","sauna","cardio","pool"], pills:[{hi:true,t:"Spa Access"},{hi:false,t:"Treadmills"},{hi:false,t:"Sauna"}] },
+  ],
+  'Singapore': [
+    { id:0, rank:1, name:"Marina Bay Sands", loc:"Bayfront Ave, Marina Bay", score:94, badge:'elite', badges:[{t:'elite',l:'⭑ Elite'}], highlights:["Infinity Pool","Full Gym"], tags:["pool","barbell","cable","sauna","cardio","recovery","functional"], pills:[{hi:true,t:"Infinity Pool"},{hi:true,t:"Full Gym"},{hi:false,t:"Barbells"},{hi:false,t:"Cables"}] },
+    { id:0, rank:2, name:"Four Seasons Singapore", loc:"Orchard Blvd, Orchard", score:89, badge:'elite', badges:[{t:'elite',l:'⭑ Elite'}], highlights:["Pool Deck","Spa"], tags:["pool","cardio","cable","sauna","recovery"], pills:[{hi:true,t:"Pool Deck"},{hi:false,t:"Cables"},{hi:false,t:"Sauna"}] },
+    { id:0, rank:3, name:"Capella Singapore", loc:"The Knolls, Sentosa Island", score:85, badge:'verified', badges:[{t:'verified',l:'✓ Verified'}], highlights:["Jungle Pool"], tags:["pool","cardio","recovery","sauna","yoga"], pills:[{hi:true,t:"Jungle Pool"},{hi:false,t:"Yoga"},{hi:false,t:"Sauna"}] },
+  ],
+  'Sydney': [
+    {name:"Fitness First George St",type:"commercial",icon:"&#127947;",distance:"0.4 km",dropin:"A$25",hours:"5am-10pm",features:["Full weights","Pool"]},
+    {name:"CrossFit Sydney CBD",type:"crossfit",icon:"&#9889;",distance:"0.9 km",dropin:"A$30",hours:"5:30am-8pm",features:["WOD","Open gym"]},
+    {name:"Yoga Republic",type:"yoga",icon:"&#129338;",distance:"0.5 km",dropin:"A$28",hours:"6am-8pm",features:["Hot yoga","Vinyasa"]},
+    {name:"Studio Pilates CBD",type:"pilates",icon:"&#127992;",distance:"0.7 km",dropin:"A$35",hours:"6am-7pm",features:["Reformer","Small group"]},
+  ],
+  'Chicago': [
+    {name:"Equinox Gold Coast",type:"commercial",icon:"&#127947;",distance:"0.3 mi",dropin:"$45",hours:"5am-11pm",features:["Full weights","Pool","Sauna"]},
+    {name:"CrossFit Chicago",type:"crossfit",icon:"&#9889;",distance:"0.8 mi",dropin:"$30",hours:"6am-8pm",features:["WOD","Open gym"]},
+    {name:"CorePower Yoga River North",type:"yoga",icon:"&#129338;",distance:"0.5 mi",dropin:"$30",hours:"6am-9pm",features:["Hot yoga","Sculpt"]},
+  ],
+  'Los Angeles': [
+    {name:"Equinox West Hollywood",type:"commercial",icon:"&#127947;",distance:"0.4 mi",dropin:"$45",hours:"5am-11pm",features:["Full weights","Pool","Sauna"]},
+    {name:"CrossFit LA",type:"crossfit",icon:"&#9889;",distance:"0.9 mi",dropin:"$35",hours:"6am-8pm",features:["WOD","Olympic lifting"]},
+    {name:"YogaWorks Brentwood",type:"yoga",icon:"&#129338;",distance:"0.6 mi",dropin:"$32",hours:"6am-9pm",features:["Vinyasa","Yin","Restorative"]},
+    {name:"Club Pilates Santa Monica",type:"pilates",icon:"&#127992;",distance:"1.0 mi",dropin:"$28",hours:"7am-8pm",features:["Reformer","Mat"]},
+  ],
+  'Paris': [
+    {name:"L'Usine Opera",type:"commercial",icon:"&#127947;",distance:"0.4 km",dropin:"25€",hours:"6am-10pm",features:["Full weights","Pool","Sauna"]},
+    {name:"CrossFit Nation Paris",type:"crossfit",icon:"&#9889;",distance:"0.9 km",dropin:"20€",hours:"6am-8pm",features:["WOD","Open gym"]},
+    {name:"Yoga Searcher Marais",type:"yoga",icon:"&#129338;",distance:"0.6 km",dropin:"22€",hours:"7am-9pm",features:["Vinyasa","Yin"]},
+  ],
+  'Singapore': [
+    {name:"Virgin Active Bugis",type:"commercial",icon:"&#127947;",distance:"0.3 km",dropin:"S$30",hours:"6am-10pm",features:["Full weights","Pool","Classes"]},
+    {name:"CrossFit Singapore",type:"crossfit",icon:"&#9889;",distance:"0.8 km",dropin:"S$35",hours:"6am-8pm",features:["WOD","Coaching"]},
+    {name:"Pure Yoga Singapore",type:"yoga",icon:"&#129338;",distance:"0.4 km",dropin:"S$40",hours:"7am-9pm",features:["Hot yoga","Vinyasa"]},
+  ],
+};
+
+let nearbyCity = 'New York';
+let nearbyActiveFilter = 'all';
+
+function renderNearby() {
+  const list = document.getElementById('nearby-list');
+  const empty = document.getElementById('nearby-empty');
+  if (!list) return;
+  const data = nearbyData[nearbyCity] || nearbyData['New York'];
+  const filtered = nearbyActiveFilter === 'all' ? data : data.filter(g => g.type === nearbyActiveFilter);
+  if (filtered.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  if (nearbyActiveFilter === 'all') {
+    const groups = [{key:'commercial',label:'&#127947; Commercial Gyms'},{key:'crossfit',label:'&#9889; CrossFit Boxes'},{key:'yoga',label:'&#129338; Yoga Studios'},{key:'pilates',label:'&#127992; Pilates Studios'}];
+    let html = '';
+    groups.forEach(g => {
+      const items = filtered.filter(i => i.type === g.key);
+      if (!items.length) return;
+      html += '<div class="nearby-section-label">' + g.label + '</div>';
+      html += items.map((gym,i) => nearbyCardHtml(gym,i)).join('');
+    });
+    list.innerHTML = html;
+  } else {
+    list.innerHTML = filtered.map((gym,i) => nearbyCardHtml(gym,i)).join('');
+  }
+}
+
+function nearbyCardHtml(gym, i) {
+  const features = gym.features.map(f => '<span class="nearby-detail">· ' + f + '</span>').join('');
+  return '<div class="nearby-card" style="animation-delay:' + (i*0.04) + 's"><div class="nearby-type-icon ' + gym.type + '">' + gym.icon + '</div><div class="nearby-info"><div class="nearby-name">' + gym.name + '</div><div class="nearby-type-label ' + gym.type + '">' + gym.type.charAt(0).toUpperCase() + gym.type.slice(1) + '</div><div class="nearby-details"><span class="nearby-detail">&#9200; ' + gym.hours + '</span>' + features + '</div></div><div class="nearby-right"><div class="nearby-distance">' + gym.distance + '</div><div><div class="nearby-dropin">' + gym.dropin + '</div><div class="nearby-dropin-label">drop-in</div></div></div></div>';
+}
+
+function nearbySelectCity(el, city) {
+  document.querySelectorAll('.nearby-city-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  nearbyCity = city;
+  renderNearby();
+}
+
+function nearbyFilter(el, type) {
+  document.querySelectorAll('.nearby-type-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  nearbyActiveFilter = type;
+  renderNearby();
+}
+
+// ── SAVED GYMS ──
+let savedGyms = [];
+let currentProfileGym = null;
+
+function toggleProfileSave(el) {
+  const isSaved = el.classList.contains('saved');
+  if (isSaved) {
+    el.classList.remove('saved');
+    el.innerHTML = '&#128278; Save';
+    el.style.borderColor = 'var(--border)';
+    el.style.color = 'var(--muted2)';
+    if (currentProfileGym) savedGyms = savedGyms.filter(g => g.name !== currentProfileGym.name);
+  } else {
+    el.classList.add('saved');
+    el.innerHTML = '&#9733; Saved';
+    el.style.borderColor = 'var(--gold)';
+    el.style.color = 'var(--gold)';
+    if (currentProfileGym && !savedGyms.find(g => g.name === currentProfileGym.name)) {
+      savedGyms.push(Object.assign({}, currentProfileGym));
+    }
+  }
+}
+
+function renderSavedGyms() {
+  const list = document.getElementById('saved-list');
+  const empty = document.getElementById('saved-empty');
+  if (!list) return;
+  if (!savedGyms.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  list.innerHTML = savedGyms.map((g,i) =>
+    '<div class="saved-card" style="animation-delay:' + (i*0.05) + 's"><div class="saved-card-main" onclick="goProfile(' + (g.profileIdx||0) + ')"><div class="saved-card-rank">' + (g.rank||i+1) + '</div><div class="saved-card-info"><div class="saved-card-name">' + g.name + '</div><div class="saved-card-loc">&#128205; ' + (g.loc||'') + '</div></div><div class="saved-card-score">' + g.score + '</div></div><div class="saved-card-actions"><button class="saved-action-btn" onclick="goProfile(' + (g.profileIdx||0) + ')">View Profile</button><button class="saved-action-btn remove" onclick="removeSaved(' + i + ',event)">Remove</button></div></div>'
+  ).join('');
+}
+
+function removeSaved(idx, e) {
+  if (e) e.stopPropagation();
+  savedGyms.splice(idx,1);
+  renderSavedGyms();
+}
+
+// ── SHARE SHEET ──
+function openShareSheet() {
+  const name = document.getElementById('p-name').textContent;
+  document.getElementById('share-gym-name').textContent = name;
+  const slug = name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  document.getElementById('share-url-sub').textContent = 'liftaway.app/gym/' + slug;
+  document.getElementById('share-overlay').classList.add('open');
+}
+
+function closeShareSheet(e) {
+  if (!e || e.target === document.getElementById('share-overlay')) {
+    document.getElementById('share-overlay').classList.remove('open');
+  }
+}
+
+function shareAction(type) {
+  const name = document.getElementById('p-name').textContent;
+  const url = 'https://bronze-debbi-98.tiiny.site';
+  const text = 'Check out ' + name + ' on Liftaway — hotel gym ratings for serious travelers: ';
+  if (type === 'copy' && navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      const sub = document.getElementById('share-url-sub');
+      sub.textContent = 'Copied!';
+      sub.style.color = 'var(--green)';
+      setTimeout(() => { sub.textContent = 'liftaway.app/gym/...'; sub.style.color = ''; }, 2000);
+    });
+  } else if (type === 'native' && navigator.share) {
+    navigator.share({title: name + ' on Liftaway', text: text, url: url});
+    closeShareSheet();
+  } else if (type === 'message') {
+    window.open('sms:?body=' + encodeURIComponent(text + url));
+    closeShareSheet();
+  }
+}
+
+
+// ── BOOKING ──
+function bookHotel() {
+  const name = document.getElementById('p-name').textContent;
+  openBookingSheet(name);
+}
+
+function bookHotelByName(el) {
+  const card = el.closest('.result-card');
+  const name = card.querySelector('.card-name').textContent;
+  openBookingSheet(name);
+}
+
+function openBookingSheet(hotelName) {
+  const q = encodeURIComponent(hotelName);
+  document.getElementById('booking-hotel-name').textContent = hotelName;
+  document.getElementById('booking-expedia').href = 'https://www.expedia.com/Hotel-Search?destination=' + q;
+  document.getElementById('booking-kayak').href = 'https://www.kayak.com/hotels/' + q;
+  document.getElementById('booking-booking').href = 'https://www.booking.com/search.html?ss=' + q;
+  document.getElementById('booking-overlay').classList.add('open');
+}
+
+function closeBookingSheet(e) {
+  if (!e || e.target === document.getElementById('booking-overlay')) {
+    document.getElementById('booking-overlay').classList.remove('open');
+  }
+}
+
+
+// ── USER PROFILE ──
+let userProfile = {
+  style: null,
+  styleIcon: null,
+  styleName: null,
+  level: null,
+  levelName: null,
+  dealbreakers: []
+};
+let obStep = 1;
+
+// Show onboarding on first launch
+window.addEventListener('DOMContentLoaded', () => {
+  renderResults('New York');
+  const hasProfile = localStorage.getItem ? localStorage.getItem('liftaway_profile') : null;
+  if (!hasProfile) {
+    setTimeout(showOnboarding, 800);
+  } else {
+    try {
+      userProfile = JSON.parse(hasProfile);
+      updateProfileDisplay();
+    } catch(e) {}
+  }
+});
+
+function showOnboarding() {
+  const ob = document.getElementById('onboarding');
+  ob.style.display = 'flex';
+}
+
+function selectStyle(el, style, icon, name) {
+  document.querySelectorAll('#ob-step1 .ob-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  userProfile.style = style;
+  userProfile.styleIcon = icon;
+  userProfile.styleName = name;
+  setTimeout(() => goObStep(2), 300);
+}
+
+function selectLevel(el, level, name) {
+  document.querySelectorAll('#ob-step2 .ob-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  userProfile.level = level;
+  userProfile.levelName = name;
+  setTimeout(() => goObStep(3), 300);
+}
+
+function toggleDealbreaker(el, tag) {
+  if (tag === 'none') {
+    document.querySelectorAll('#ob-dealbreaker-grid .ob-db-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    userProfile.dealbreakers = [];
+    return;
+  }
+  document.querySelectorAll('#ob-dealbreaker-grid .ob-db-chip[onclick*="none"]')[0].classList.remove('selected');
+  if (el.classList.contains('selected')) {
+    el.classList.remove('selected');
+    userProfile.dealbreakers = userProfile.dealbreakers.filter(d => d !== tag);
+  } else {
+    if (userProfile.dealbreakers.length >= 3) return;
+    el.classList.add('selected');
+    userProfile.dealbreakers.push(tag);
+  }
+}
+
+function goObStep(step) {
+  obStep = step;
+  document.querySelectorAll('.ob-step').forEach(s => s.style.display = 'none');
+  document.getElementById('ob-step' + step).style.display = 'flex';
+  document.getElementById('ob-progress').style.width = (step / 3 * 100) + '%';
+}
+
+function finishOnboarding() {
+  if (localStorage.setItem) {
+    localStorage.setItem('liftaway_profile', JSON.stringify(userProfile));
+  }
+  const ob = document.getElementById('onboarding');
+  ob.style.opacity = '0';
+  ob.style.transition = 'opacity 0.4s ease';
+  setTimeout(() => { ob.style.display = 'none'; ob.style.opacity = '1'; }, 420);
+  updateProfileDisplay();
+}
+
+function updateProfileDisplay() {
+  if (!userProfile.style) return;
+
+  // Update home screen label
+  const homeLabel = document.getElementById('home-score-label');
+  if (homeLabel && userProfile.style !== 'general') {
+    const labels = {strength:'Strength Athletes',cardio:'Cardio Athletes',crossfit:'CrossFit Athletes',yoga:'Yoga & Recovery',general:'Everyone'};
+    homeLabel.textContent = 'Top Scores for ' + (labels[userProfile.style] || 'You');
+  }
+
+  // Re-render results if on results screen
+  if (document.getElementById('screen-results').classList.contains('active')) {
+    renderResults(currentCity);
+  }
+
+  // Update profile card
+  const iconEl = document.getElementById('pref-icon');
+  const nameEl = document.getElementById('pref-name');
+  const levelEl = document.getElementById('pref-level');
+  if (iconEl) iconEl.innerHTML = userProfile.styleIcon || '&#9878;';
+  if (nameEl) nameEl.textContent = userProfile.styleName || 'Not set';
+  if (levelEl) levelEl.textContent = userProfile.levelName || '';
+
+  // Update dealbreakers
+  const dbEl = document.getElementById('pref-dealbreakers-display');
+  if (dbEl) {
+    if (!userProfile.dealbreakers.length) {
+      dbEl.innerHTML = '<div style="font-size:13px;color:var(--muted);font-weight:300">No dealbreakers set</div>';
+    } else {
+      const labels = {
+        barbell: '&#127947; Barbell & Rack',
+        cable: '&#9196; Cable Machine',
+        peloton: '&#128692; Peloton / Spin',
+        pool: '&#127946; Pool',
+        sauna: '&#129494; Sauna / Steam',
+        coldplunge: '&#129398; Cold Plunge',
+        functional: '&#9881; Functional Rig',
+        '24hr': '&#128336; 24hr Access'
+      };
+      dbEl.innerHTML = userProfile.dealbreakers.map(d =>
+        '<div class="pref-db-tag">' + (labels[d] || d) + '</div>'
+      ).join('');
+    }
+  }
+
+  // Sync pref sheet selections
+  syncPrefSheet();
+}
+
+// ── PREFERENCE SHEET ──
+function openPrefSheet() {
+  syncPrefSheet();
+  document.getElementById('pref-overlay').classList.add('open');
+}
+
+function closePrefSheet(e) {
+  if (!e || e.target === document.getElementById('pref-overlay')) {
+    document.getElementById('pref-overlay').classList.remove('open');
+  }
+}
+
+function syncPrefSheet() {
+  // Sync style
+  document.querySelectorAll('.pref-style-opt').forEach(el => {
+    const s = el.getAttribute('onclick');
+    el.classList.toggle('selected', s && s.includes("'" + userProfile.style + "'"));
+  });
+  // Sync level
+  document.querySelectorAll('.pref-level-opt').forEach(el => {
+    const s = el.getAttribute('onclick');
+    el.classList.toggle('selected', s && s.includes("'" + userProfile.level + "'"));
+  });
+  // Sync dealbreakers
+  document.querySelectorAll('#pref-db-grid .ob-db-chip').forEach(el => {
+    const s = el.getAttribute('onclick');
+    const match = s && s.match(/'([^']+)'/);
+    if (match) el.classList.toggle('selected', userProfile.dealbreakers.includes(match[1]));
+  });
+}
+
+function setPrefStyle(el, style, icon, name) {
+  document.querySelectorAll('.pref-style-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  userProfile.style = style;
+  userProfile.styleIcon = icon;
+  userProfile.styleName = name;
+}
+
+function setPrefLevel(el, level, name) {
+  document.querySelectorAll('.pref-level-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  userProfile.level = level;
+  userProfile.levelName = name;
+}
+
+function togglePrefDB(el, tag) {
+  if (el.classList.contains('selected')) {
+    el.classList.remove('selected');
+    userProfile.dealbreakers = userProfile.dealbreakers.filter(d => d !== tag);
+  } else {
+    if (userProfile.dealbreakers.length >= 3) return;
+    el.classList.add('selected');
+    userProfile.dealbreakers.push(tag);
+  }
+}
+
+function savePrefSheet() {
+  if (localStorage.setItem) {
+    localStorage.setItem('liftaway_profile', JSON.stringify(userProfile));
+  }
+  closePrefSheet();
+  updateProfileDisplay();
+}
+
+</script>
+</body>
+</html>
