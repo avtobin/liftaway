@@ -1524,6 +1524,7 @@
     <div class="section-label">Popular Cities</div>
     <div class="cities-scroll">
       <div class="city-chip" onclick="selectCity(this, \"St. John's\")">St. John's</div>
+      <div class="city-chip" onclick="selectCity(this, 'Orange County')">Orange County</div>
       <div class="city-chip" onclick="selectCity(this, 'Winnipeg')">Winnipeg</div>
       <div class="city-chip" onclick="selectCity(this, 'Toronto')">Toronto</div>
       <div class="city-chip" onclick="selectCity(this, 'New York')">New York</div>
@@ -1935,6 +1936,7 @@
         <div class="map-title">Explore</div>
         <div class="map-city-select">
           <select id="map-city-select" onchange="mapSelectCity(this.value)">
+            <option value="Orange County">Orange County</option>
             <option value="St. John's">St. John's</option>
             <option value="Winnipeg">Winnipeg</option>
             <option value="Toronto">Toronto</option>
@@ -1991,7 +1993,8 @@
       <div class="nearby-sub">Drop-ins, boxes and studios near your hotel</div>
       <div class="nearby-city-row">
         <div class="nearby-city-chips">
-          <div class="nearby-city-chip active" onclick="nearbySelectCity(this,&quot;St. John's&quot;)">St. John's</div>
+          <div class="nearby-city-chip active" onclick="nearbySelectCity(this,'Orange County')">Orange County</div>
+          <div class="nearby-city-chip" onclick="nearbySelectCity(this,&quot;St. John's&quot;)">St. John's</div>
           <div class="nearby-city-chip" onclick="nearbySelectCity(this,'Winnipeg')">Winnipeg</div>
           <div class="nearby-city-chip" onclick="nearbySelectCity(this,'Toronto')">Toronto</div>
           <div class="nearby-city-chip" onclick="nearbySelectCity(this,'New York')">New York</div>
@@ -2626,6 +2629,78 @@ function updateNav(active) {
 
 // ── CITY GYM DATA ──
 const cityGyms = {
+  'Orange County': [
+    {
+      id: 0, rank: 1, name: "Resort at Pelican Hill", loc: "Pelican Hill Rd N, Newport Coast",
+      score: 95, badge: 'elite', badges: [{t:'elite',l:'⭑ Elite'},{t:'verified',l:'✓ Verified'}],
+      highlights: ["Ocean Views","Yoga Classes"],
+      tags: ["cardio","cable","recovery","pool","sauna","yoga","functional"],
+      pills: [{hi:true,t:"Ocean Views"},{hi:true,t:"Yoga Classes"},{hi:false,t:"Steam Room"},{hi:false,t:"Pool"},{hi:false,t:"Full Weights"}]
+    },
+    {
+      id: 0, rank: 2, name: "Monarch Beach Resort", loc: "S Coast Hwy, Dana Point",
+      score: 91, badge: 'elite', badges: [{t:'elite',l:'⭑ Elite'}],
+      highlights: ["Beachfront","Full Weights"],
+      tags: ["barbell","cable","cardio","recovery","pool","sauna","functional"],
+      pills: [{hi:true,t:"Beachfront"},{hi:false,t:"Barbells"},{hi:false,t:"Cables"},{hi:false,t:"Pool"},{hi:false,t:"Sauna"}]
+    },
+    {
+      id: 0, rank: 3, name: "Hyatt Regency Huntington Beach", loc: "Pacific Coast Hwy, Huntington Beach",
+      score: 88, badge: 'elite', badges: [{t:'elite',l:'⭑ Elite'},{t:'verified',l:'✓ Verified'}],
+      highlights: ["Peloton","Hydrow Rower"],
+      tags: ["cardio","cable","recovery","pool","sauna","peloton","functional"],
+      pills: [{hi:true,t:"Peloton"},{hi:true,t:"Hydrow Rower"},{hi:false,t:"Precor Equipment"},{hi:false,t:"Climbr"},{hi:false,t:"24hrs"}]
+    },
+    {
+      id: 0, rank: 4, name: "The Resort at Balboa Bay", loc: "Bayside Dr, Newport Beach",
+      score: 84, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Bay Views","Pool"],
+      tags: ["cardio","cable","pool","sauna","recovery"],
+      pills: [{hi:true,t:"Bay Views"},{hi:false,t:"Treadmills"},{hi:false,t:"Cables"},{hi:false,t:"Pool"},{hi:false,t:"Sauna"}]
+    },
+    {
+      id: 0, rank: 5, name: "Renaissance Newport Beach Hotel", loc: "MacArthur Blvd, Newport Beach",
+      score: 82, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["24hrs","Tennis Courts"],
+      tags: ["cardio","cable","pool","functional"],
+      pills: [{hi:false,t:"24hrs"},{hi:false,t:"Treadmills"},{hi:false,t:"Cables"},{hi:false,t:"Pool"},{hi:false,t:"Tennis"}]
+    },
+    {
+      id: 0, rank: 6, name: "Hyatt Regency Newport Beach", loc: "Newport Center Dr, Newport Beach",
+      score: 80, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Golf Course Views"],
+      tags: ["cardio","cable","pool","recovery"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Cables"},{hi:false,t:"Pool"},{hi:false,t:"Free Weights"}]
+    },
+    {
+      id: 0, rank: 7, name: "Costa Mesa Marriott", loc: "Anton Blvd, Costa Mesa",
+      score: 76, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["24hrs"],
+      tags: ["cardio","cable","pool","functional"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Cables"},{hi:false,t:"Free Weights"},{hi:false,t:"Pool"}]
+    },
+    {
+      id: 0, rank: 8, name: "Hilton Anaheim", loc: "Convention Way, Anaheim",
+      score: 74, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Convention Location"],
+      tags: ["cardio","cable","pool","sauna"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Weight Machines"},{hi:false,t:"Pool"},{hi:false,t:"Sauna"}]
+    },
+    {
+      id: 0, rank: 9, name: "Disneyland Hotel", loc: "Disneyland Dr, Anaheim",
+      score: 70, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["Disney Access"],
+      tags: ["cardio","pool"],
+      pills: [{hi:false,t:"Treadmills"},{hi:false,t:"Ellipticals"},{hi:false,t:"Pool"},{hi:false,t:"Basic Weights"}]
+    },
+    {
+      id: 0, rank: 10, name: "Irvine Marriott", loc: "Von Karman Ave, Irvine",
+      score: 77, badge: 'verified', badges: [{t:'verified',l:'✓ Verified'}],
+      highlights: ["24hrs","Full Weights"],
+      tags: ["cardio","cable","pool","barbell","functional"],
+      pills: [{hi:false,t:"Barbells"},{hi:false,t:"Treadmills"},{hi:false,t:"Cables"},{hi:false,t:"Pool"}]
+    },
+  ],
   "St. John's": [
     {
       id: 0, rank: 1, name: "Alt Hotel St. John's", loc: "New Gower St, Downtown",
@@ -3277,6 +3352,32 @@ function submitReview() {
 
 // ── MAP VIEW ──
 const mapData = {
+  'Orange County': {
+    center: { x: 0.5, y: 0.5 },
+    gyms: [
+      { id:0, rank:1, name:"Resort at Pelican Hill", loc:"Newport Coast", score:95, badge:'elite', px:0.58, py:0.44,
+        highlights:["Ocean Views","Yoga"], tags:["cardio","recovery","pool","yoga"],
+        pills:[{hi:true,t:"Ocean Views"},{hi:false,t:"Steam Room"},{hi:false,t:"Pool"}] },
+      { id:0, rank:2, name:"Monarch Beach Resort", loc:"Dana Point", score:91, badge:'elite', px:0.54, py:0.62,
+        highlights:["Beachfront"], tags:["barbell","cable","cardio","pool","sauna"],
+        pills:[{hi:true,t:"Beachfront"},{hi:false,t:"Barbells"},{hi:false,t:"Pool"}] },
+      { id:0, rank:3, name:"Hyatt Regency HB", loc:"Huntington Beach", score:88, badge:'elite', px:0.34, py:0.48,
+        highlights:["Peloton","Hydrow"], tags:["cardio","cable","pool","sauna","peloton"],
+        pills:[{hi:true,t:"Peloton"},{hi:false,t:"Hydrow Rower"},{hi:false,t:"Pool"}] },
+      { id:0, rank:4, name:"Balboa Bay Resort", loc:"Newport Beach", score:84, badge:'verified', px:0.60, py:0.42,
+        highlights:[], tags:["cardio","cable","pool","sauna"],
+        pills:[{hi:false,t:"Bay Views"},{hi:false,t:"Pool"}] },
+      { id:0, rank:5, name:"Renaissance Newport Beach", loc:"Newport Beach", score:82, badge:'verified', px:0.62, py:0.38,
+        highlights:["24hrs"], tags:["cardio","cable","pool"],
+        pills:[{hi:false,t:"24hrs"},{hi:false,t:"Pool"},{hi:false,t:"Tennis"}] },
+      { id:0, rank:6, name:"Irvine Marriott", loc:"Irvine", score:77, badge:'verified', px:0.56, py:0.34,
+        highlights:[], tags:["barbell","cable","cardio","pool"],
+        pills:[{hi:false,t:"Barbells"},{hi:false,t:"Pool"}] },
+      { id:0, rank:7, name:"Hilton Anaheim", loc:"Anaheim", score:74, badge:'verified', px:0.38, py:0.30,
+        highlights:[], tags:["cardio","cable","pool","sauna"],
+        pills:[{hi:false,t:"Pool"},{hi:false,t:"Sauna"}] },
+    ]
+  },
   "St. John's": {
     center: { x: 0.5, y: 0.5 },
     gyms: [
@@ -3613,6 +3714,14 @@ function enterApp() {
 
 // ── NEARBY GYMS DATA ──
 const nearbyData = {
+  'Orange County': [
+    {name:"Equinox Newport Beach", type:"commercial", icon:"&#127947;", distance:"0.8 mi", dropin:"$45", hours:"5am-11pm", features:["Full weights","Pool","Sauna","Classes"]},
+    {name:"CrossFit Huntington Beach", type:"crossfit", icon:"&#9889;", distance:"1.2 mi", dropin:"$30", hours:"6am-8pm", features:["WOD","Open gym","Beach WODs"]},
+    {name:"CorePower Yoga Newport Beach", type:"yoga", icon:"&#129338;", distance:"0.6 mi", dropin:"$30", hours:"6am-9pm", features:["Hot yoga","Sculpt","C2"]},
+    {name:"Club Pilates Newport Beach", type:"pilates", icon:"&#127992;", distance:"0.9 mi", dropin:"$28", hours:"6am-8pm", features:["Reformer","Mat","Small group"]},
+    {name:"Orangetheory Fitness Irvine", type:"crossfit", icon:"&#9889;", distance:"1.5 mi", dropin:"$28", hours:"5am-8pm", features:["HIIT","Treadmill","Rowing"]},
+    {name:"24 Hour Fitness Costa Mesa", type:"commercial", icon:"&#127947;", distance:"1.1 mi", dropin:"$20", hours:"24hrs", features:["Full weights","Pool","24hr access"]},
+  ],
   "St. John's": [
     {name:"GoodLife Fitness Avalon Mall", type:"commercial", icon:"&#127947;", distance:"0.8 km", dropin:"C$20", hours:"5am-11pm", features:["Full weights","Cardio","Classes"]},
     {name:"CrossFit St. John's", type:"crossfit", icon:"&#9889;", distance:"1.5 km", dropin:"C$25", hours:"6am-8pm", features:["WOD","Open gym","Coaching"]},
